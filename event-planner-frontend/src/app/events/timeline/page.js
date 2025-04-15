@@ -10,9 +10,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const typeColorMap = {
   Dividends: '#3b82f6',
@@ -22,8 +22,20 @@ const typeColorMap = {
 };
 
 const initialEvents = [
-  { id: '1', title: 'Q1 Earnings Call', type: 'Dividends', startDate: '2025-04-10', endDate: '2025-04-11' },
-  { id: '2', title: 'M&A Announcement', type: 'Merger', startDate: '2025-04-12', endDate: '2025-04-15' },
+  {
+    id: '1',
+    title: 'Q1 Earnings Call',
+    type: 'Dividends',
+    startDate: '2025-04-10',
+    endDate: '2025-04-11',
+  },
+  {
+    id: '2',
+    title: 'M&A Announcement',
+    type: 'Merger',
+    startDate: '2025-04-12',
+    endDate: '2025-04-15',
+  },
   { id: '3', title: 'New CTO Hired', type: 'Hire', startDate: '2025-04-16', endDate: '2025-04-17' },
 ];
 
@@ -67,9 +79,9 @@ export default function TimelinePage() {
       updated.map((t) => ({
         id: t.id,
         title: t.name,
-        type: Object.keys(typeColorMap).find(
-          (key) => typeColorMap[key] === t.styles.progressColor
-        ) || 'Default',
+        type:
+          Object.keys(typeColorMap).find((key) => typeColorMap[key] === t.styles.progressColor) ||
+          'Default',
         startDate: t.start.toISOString().slice(0, 10),
         endDate: t.end.toISOString().slice(0, 10),
       }))
@@ -77,8 +89,8 @@ export default function TimelinePage() {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 p-4">
+      <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Timeline View</h2>
         <Select value={viewMode} onValueChange={setViewMode}>
           <SelectTrigger className="w-[180px]">
@@ -92,17 +104,12 @@ export default function TimelinePage() {
         </Select>
       </div>
 
-      <Gantt
-        tasks={tasks}
-        viewMode={viewMode}
-        onDateChange={handleDateChange}
-        now={new Date()}
-      />
+      <Gantt tasks={tasks} viewMode={viewMode} onDateChange={handleDateChange} now={new Date()} />
 
       {/* 添加事件表单 */}
-      <div className="mt-6 p-4 border rounded-lg space-y-2">
+      <div className="mt-6 space-y-2 rounded-lg border p-4">
         <h3 className="text-lg font-semibold">添加新事件</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
           <Input
             placeholder="标题"
             value={newEvent.title}

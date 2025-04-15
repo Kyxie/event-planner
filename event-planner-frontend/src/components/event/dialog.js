@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from '@/components/ui/dialog';
 import EventForm from './form';
 import { useState } from 'react';
@@ -19,9 +19,7 @@ export default function EventDialog({ mode = 'add', trigger, event = {}, onSave 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{mode === 'add' ? 'Add Event' : 'Edit Event'}</DialogTitle>

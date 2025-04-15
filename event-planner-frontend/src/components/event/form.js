@@ -6,7 +6,14 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,8 +21,8 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem
-} from "@/components/ui/command"
+  CommandItem,
+} from '@/components/ui/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 
@@ -51,7 +58,7 @@ export default function EventForm({ initialData = {}, onSubmit }) {
     onSubmit(finalData);
   };
 
-  const typeOptions = ["Merger", "Dividends", "New Capital", "Hire", "IPO", "Expansion"];
+  const typeOptions = ['Merger', 'Dividends', 'New Capital', 'Hire', 'IPO', 'Expansion'];
   const [open, setOpen] = useState(false);
 
   return (
@@ -88,11 +95,11 @@ export default function EventForm({ initialData = {}, onSubmit }) {
                       variant="outline"
                       role="combobox"
                       className={cn(
-                        "w-full justify-between",
-                        !field.value && "text-muted-foreground"
+                        'w-full justify-between',
+                        !field.value && 'text-muted-foreground'
                       )}
                     >
-                      {field.value || "Select or type a type"}
+                      {field.value || 'Select or type a type'}
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
@@ -105,7 +112,7 @@ export default function EventForm({ initialData = {}, onSubmit }) {
                         field.onChange(val);
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (e.key === 'Enter') {
                           const newValue = e.currentTarget.value.trim();
                           if (newValue) {
                             field.onChange(newValue);
@@ -164,9 +171,7 @@ export default function EventForm({ initialData = {}, onSubmit }) {
                   <Calendar
                     mode="single"
                     selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) =>
-                      field.onChange(date?.toISOString().split('T')[0])
-                    }
+                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
                     initialFocus
                   />
                 </PopoverContent>
@@ -200,18 +205,16 @@ export default function EventForm({ initialData = {}, onSubmit }) {
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={field.value ? new Date(field.value) : undefined}
-                  onSelect={(date) =>
-                    field.onChange(date?.toISOString().split('T')[0])
-                  }
-                  disabled={(date) => {
-                    if (!watchedStartDate) return false;
-                    return date < new Date(watchedStartDate);
-                  }}
-                  initialFocus
-                />
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                    disabled={(date) => {
+                      if (!watchedStartDate) return false;
+                      return date < new Date(watchedStartDate);
+                    }}
+                    initialFocus
+                  />
                 </PopoverContent>
               </Popover>
               <FormMessage />

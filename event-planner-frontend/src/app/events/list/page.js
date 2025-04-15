@@ -3,17 +3,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import EventDialog from '@/components/event/dialog';
+import EventCard from '@/components/event/card';
 import { Plus, RefreshCcw } from 'lucide-react';
-import Link from "next/link";
+import Link from 'next/link';
 
 const mockEvents = [
   {
@@ -43,9 +36,9 @@ export default function EventListPage() {
 
   const handleSave = (newEvent) => {
     setEvents((prev) => {
-      const exists = prev.find(e => e.id === newEvent.id);
+      const exists = prev.find((e) => e.id === newEvent.id);
       if (exists) {
-        return prev.map(e => e.id === newEvent.id ? newEvent : e);
+        return prev.map((e) => (e.id === newEvent.id ? newEvent : e));
       }
       return [...prev, newEvent];
     });
@@ -53,7 +46,7 @@ export default function EventListPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-bold">List View</h2>
         <div className="flex items-center gap-2">
           {/* Search */}
@@ -67,7 +60,7 @@ export default function EventListPage() {
           {/* Change view */}
           <Link href="/events/timeline">
             <Button variant="outline" size="icon">
-              <RefreshCcw className="w-4 h-4" />
+              <RefreshCcw className="h-4 w-4" />
             </Button>
           </Link>
 
@@ -77,7 +70,7 @@ export default function EventListPage() {
             onSave={handleSave}
             trigger={
               <Button size="icon">
-                <Plus className="w-4 h-4" />
+                <Plus className="h-4 w-4" />
               </Button>
             }
           />
@@ -88,39 +81,8 @@ export default function EventListPage() {
       ) : (
         <ul className="space-y-4">
           {events.map((event) => (
-            <li key={event.id} className="border p-4 rounded-xl">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">{event.title}</h3>
-                  <p>{event.startDate} — {event.endDate}</p>
-                  <p className="text-sm text-muted-foreground">{event.type}</p>
-                </div>
-                <div className="flex gap-2">
-                  <EventDialog
-                    mode="edit"
-                    event={event}
-                    onSave={handleSave}
-                    trigger={<Button variant="outline" size="sm">Edit</Button>}
-                  />
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="destructive" size="sm" onClick={() => setDeleteId(event.id)}>
-                        Delete
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Are you sure?</DialogTitle>
-                      </DialogHeader>
-                      <p>This action cannot be undone. The event will be permanently deleted.</p>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
-                        <Button variant="destructive" onClick={() => handleDelete(deleteId)}>Delete</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
+            <li key={event.id}>
+              <EventCard event={event} onSave={handleSave} onDelete={handleDelete} />
             </li>
           ))}
         </ul>
