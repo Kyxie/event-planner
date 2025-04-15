@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,9 @@ import {
   DialogFooter,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import EventDialog from '@/components/event/dialog';
+import { Plus, RefreshCcw } from 'lucide-react';
+import Link from "next/link";
 
 const mockEvents = [
   {
@@ -38,32 +41,67 @@ export default function EventListPage() {
     setDeleteId(null);
   };
 
+  const handleSave = (newEvent) => {
+    setEvents((prev) => {
+      const exists = prev.find(e => e.id === newEvent.id);
+      if (exists) {
+        return prev.map(e => e.id === newEvent.id ? newEvent : e);
+      }
+      return [...prev, newEvent];
+    });
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">List View</h2>
-        <Link href="/events/new" passHref>
-          <Button>+ Add Event</Button>
-        </Link>
-      </div>
+        <div className="flex items-center gap-2">
+          {/* Search */}
+          <Input
+            type="text"
+            placeholder="Search..."
+            onChange={(e) => onSearch(e.target.value)}
+            className="w-[200px]"
+          />
 
+          {/* Change view */}
+          <Link href="/events/timeline">
+            <Button variant="outline" size="icon">
+              <RefreshCcw className="w-4 h-4" />
+            </Button>
+          </Link>
+
+          {/* Adding events */}
+          <EventDialog
+            mode="add"
+            onSave={handleSave}
+            trigger={
+              <Button size="icon">
+                <Plus className="w-4 h-4" />
+              </Button>
+            }
+          />
+        </div>
+      </div>
       {events.length === 0 ? (
-        <div className="text-gray-500">No events available. Click "Add Event" to create one.</div>
+        <p>No events</p>
       ) : (
         <ul className="space-y-4">
           {events.map((event) => (
-            <li key={event.id} className="bg-white p-4 rounded-xl border shadow-sm">
-              <div className="flex justify-between">
+            <li key={event.id} className="border p-4 rounded-xl">
+              <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-lg font-semibold">{event.title}</h3>
+                  <h3 className="font-semibold">{event.title}</h3>
+                  <p>{event.startDate} — {event.endDate}</p>
                   <p className="text-sm text-muted-foreground">{event.type}</p>
-                  <p className="text-sm">{event.startDate} — {event.endDate}</p>
                 </div>
-                <div className="flex gap-2 items-center">
-                  <Link href={`/events/${event.id}`} passHref>
-                    <Button variant="outline" className="w-[7ch]" size="sm">Edit</Button>
-                  </Link>
-
+                <div className="flex gap-2">
+                  <EventDialog
+                    mode="edit"
+                    event={event}
+                    onSave={handleSave}
+                    trigger={<Button variant="outline" size="sm">Edit</Button>}
+                  />
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="destructive" size="sm" onClick={() => setDeleteId(event.id)}>

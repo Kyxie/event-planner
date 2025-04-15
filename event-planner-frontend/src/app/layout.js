@@ -1,4 +1,3 @@
-// src/app/layout.js
 import "@/styles/globals.css";
 import { Inter } from "next/font/google";
 import Link from "next/link";
@@ -8,6 +7,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "Event Planner",
   description: "Manage your events with timeline and list view",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }) {
