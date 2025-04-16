@@ -56,7 +56,7 @@ export default function ExpandableDatePicker({ dateRange, setDateRange }) {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="h-9 w-[300px] justify-start pl-3 text-left font-normal"
+              className="h-9 w-[210px] justify-start pl-3 text-left font-normal"
             >
               {dateRange?.from ? (
                 dateRange.to ? (

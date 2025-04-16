@@ -31,22 +31,22 @@ export default function EventForm({ initialData = {}, onSubmit }) {
     defaultValues: {
       title: '',
       type: '',
-      startDate: '',
-      endDate: '',
+      start: '',
+      end: '',
     },
   });
 
   const watchedStartDate = useWatch({
     control: form.control,
-    name: 'startDate',
+    name: 'start',
   });
 
   useEffect(() => {
     form.reset({
       title: initialData.title || '',
       type: initialData.type || '',
-      startDate: initialData.startDate || '',
-      endDate: initialData.endDate || '',
+      start: initialData.start || '',
+      end: initialData.end || '',
     });
   }, [initialData, form]);
 
@@ -54,6 +54,8 @@ export default function EventForm({ initialData = {}, onSubmit }) {
     const finalData = {
       ...data,
       id: initialData.id || Date.now().toString(),
+      start: new Date(data.start).toISOString(),
+      end: new Date(data.end).toISOString(),
     };
     onSubmit(finalData);
   };
@@ -147,7 +149,7 @@ export default function EventForm({ initialData = {}, onSubmit }) {
         {/* Start Date */}
         <FormField
           control={form.control}
-          name="startDate"
+          name="start"
           rules={{ required: 'Start date is required' }}
           render={({ field }) => (
             <FormItem className="flex flex-col">
@@ -171,7 +173,13 @@ export default function EventForm({ initialData = {}, onSubmit }) {
                   <Calendar
                     mode="single"
                     selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                    onSelect={(date) => {
+                      if (date) {
+                        const adjusted = new Date(date);
+                        adjusted.setHours(0, 0, 0, 0);
+                        field.onChange(adjusted);
+                      }
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -184,7 +192,7 @@ export default function EventForm({ initialData = {}, onSubmit }) {
         {/* End Date */}
         <FormField
           control={form.control}
-          name="endDate"
+          name="end"
           rules={{ required: 'End date is required' }}
           render={({ field }) => (
             <FormItem className="flex flex-col">
@@ -208,7 +216,13 @@ export default function EventForm({ initialData = {}, onSubmit }) {
                   <Calendar
                     mode="single"
                     selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                    onSelect={(date) => {
+                      if (date) {
+                        const adjusted = new Date(date);
+                        adjusted.setHours(0, 0, 0, 0);
+                        field.onChange(adjusted);
+                      }
+                    }}
                     disabled={(date) => {
                       if (!watchedStartDate) return false;
                       return date < new Date(watchedStartDate);

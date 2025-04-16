@@ -1,18 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import EventHeader from '@/components/event/EventHeader';
 import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import '@/styles/timeline.css';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 
 const typeColorMap = {
   Dividends: '#3b82f6',
@@ -36,12 +28,21 @@ const initialEvents = [
     startDate: '2025-04-12',
     endDate: '2025-04-15',
   },
-  { id: '3', title: 'New CTO Hired', type: 'Hire', startDate: '2025-04-16', endDate: '2025-04-17' },
+  {
+    id: '3',
+    title: 'New CTO Hired',
+    type: 'Hire',
+    startDate: '2025-04-16',
+    endDate: '2025-04-17',
+  },
 ];
 
 export default function TimelinePage() {
-  const [viewMode, setViewMode] = useState(ViewMode.Day);
   const [events, setEvents] = useState(initialEvents);
+  const [dateRange, setDateRange] = useState({
+    from: new Date(2025, 3, 1),
+    to: new Date(2025, 3, 30),
+  });
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -58,7 +59,38 @@ export default function TimelinePage() {
     setNewEvent({ title: '', type: 'Default', startDate: '', endDate: '' });
   };
 
-  const tasks = events.map((event) => ({
+  const handleDateChange = (task, newStart, newEnd) => {
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === task.id
+          ? {
+              ...e,
+              startDate: newStart.toISOString().slice(0, 10),
+              endDate: newEnd.toISOString().slice(0, 10),
+            }
+          : e
+      )
+    );
+  };
+
+  const handleSave = (event) => {
+    setEvents((prev) => {
+      const exists = prev.find((e) => e.id === event.id);
+      if (exists) {
+        return prev.map((e) => (e.id === event.id ? event : e));
+      }
+      return [...prev, event];
+    });
+  };
+
+  // 过滤事件：只显示在 dateRange 范围内的
+  const filteredEvents = events.filter((event) => {
+    const start = new Date(event.startDate);
+    const end = new Date(event.endDate);
+    return start <= dateRange.to && end >= dateRange.from;
+  });
+
+  const tasks = filteredEvents.map((event) => ({
     id: event.id,
     name: event.title,
     type: 'task',
@@ -71,78 +103,21 @@ export default function TimelinePage() {
     },
   }));
 
-  const handleDateChange = (task, newStart, newEnd) => {
-    const updated = tasks.map((t) =>
-      t.id === task.id ? { ...t, start: newStart, end: newEnd } : t
-    );
-    setEvents(
-      updated.map((t) => ({
-        id: t.id,
-        title: t.name,
-        type:
-          Object.keys(typeColorMap).find((key) => typeColorMap[key] === t.styles.progressColor) ||
-          'Default',
-        startDate: t.start.toISOString().slice(0, 10),
-        endDate: t.end.toISOString().slice(0, 10),
-      }))
-    );
-  };
-
   return (
-    <div className="space-y-4 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Timeline View</h2>
-        <Select value={viewMode} onValueChange={setViewMode}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select view mode" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ViewMode.Day}>Day</SelectItem>
-            <SelectItem value={ViewMode.Week}>Week</SelectItem>
-            <SelectItem value={ViewMode.Month}>Month</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <div>
+      <EventHeader
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        onSave={handleSave}
+        view="timeline"
+      />
 
-      <Gantt tasks={tasks} viewMode={viewMode} onDateChange={handleDateChange} now={new Date()} />
-
-      {/* 添加事件表单 */}
-      <div className="mt-6 space-y-2 rounded-lg border p-4">
-        <h3 className="text-lg font-semibold">添加新事件</h3>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
-          <Input
-            placeholder="标题"
-            value={newEvent.title}
-            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-          />
-          <Select
-            value={newEvent.type}
-            onValueChange={(value) => setNewEvent({ ...newEvent, type: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="类型" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(typeColorMap).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            type="date"
-            value={newEvent.startDate}
-            onChange={(e) => setNewEvent({ ...newEvent, startDate: e.target.value })}
-          />
-          <Input
-            type="date"
-            value={newEvent.endDate}
-            onChange={(e) => setNewEvent({ ...newEvent, endDate: e.target.value })}
-          />
-          <Button onClick={handleAddEvent}>添加</Button>
-        </div>
-      </div>
+      <Gantt
+        tasks={tasks}
+        viewMode={ViewMode.Day}
+        onDateChange={handleDateChange}
+        now={new Date()}
+      />
     </div>
   );
 }

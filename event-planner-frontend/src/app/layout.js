@@ -19,14 +19,6 @@ export default function RootLayout({ children }) {
         {/* Header */}
         <header className="flex items-center justify-between border-b bg-white p-4 shadow-sm">
           <h1 className="text-xl font-semibold">📅 Event Planner</h1>
-          <nav className="space-x-4">
-            <Link href="/events/list" className="hover:underline">
-              List View
-            </Link>
-            <Link href="/events/timeline" className="hover:underline">
-              Timeline View
-            </Link>
-          </nav>
         </header>
 
         {/* Main Content */}

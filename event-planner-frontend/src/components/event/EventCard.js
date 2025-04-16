@@ -12,8 +12,9 @@ import {
 } from '@/components/ui/dialog';
 import { Pencil, Trash2 } from 'lucide-react';
 import EventDialog from './EventDialog';
+import { format } from 'date-fns';
 
-export default function EventCard({ event, onSave, onDelete }) {
+export default function EventCard({ event, onSave, onDelete, onUpdate }) {
   const [openDelete, setOpenDelete] = useState(false);
 
   return (
@@ -22,7 +23,8 @@ export default function EventCard({ event, onSave, onDelete }) {
         <div>
           <h3 className="font-semibold">{event.title}</h3>
           <p>
-            {event.startDate} — {event.endDate}
+            {format(new Date(event.start), 'MMMM do, yyyy')} — {' '}
+            {format(new Date(event.end), 'MMMM do, yyyy')}
           </p>
           <p className="text-muted-foreground text-sm">{event.type}</p>
         </div>
@@ -32,7 +34,7 @@ export default function EventCard({ event, onSave, onDelete }) {
           <EventDialog
             mode="edit"
             event={event}
-            onSave={onSave}
+            onSave={(updatedData) => onUpdate(event._id, updatedData)}
             trigger={
               <Button size="icon" variant="outline">
                 <Pencil className="h-4 w-4" />
@@ -59,7 +61,7 @@ export default function EventCard({ event, onSave, onDelete }) {
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    onDelete(event.id);
+                    onDelete(event._id);
                     setOpenDelete(false);
                   }}
                 >
