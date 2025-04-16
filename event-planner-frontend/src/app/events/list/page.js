@@ -1,54 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import EventDialog from '@/components/event/EventDialog';
 import EventCard from '@/components/event/EventCard';
-import ExpandableSearch from '@/components/button/ExpandableSearch';
+// import ExpandableSearch from '@/components/button/ExpandableSearch';
 import ExpandableDatePicker from '@/components/button/ExpandableDateRangePicker';
-import { Plus, RefreshCcw, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, RefreshCcw } from 'lucide-react';
 import Link from 'next/link';
-
-const mockEvents = [
-  {
-    id: '1',
-    title: 'Q1 Earnings Call',
-    type: 'Dividends',
-    startDate: '2025-04-20',
-    endDate: '2025-04-21',
-  },
-  {
-    id: '2',
-    title: 'M&A Announcement',
-    type: 'Merger',
-    startDate: '2025-04-22',
-    endDate: '2025-04-25',
-  },
-];
+import { getEvents, addEvent, updateEvent, deleteEvent } from '@/api/events';
+import { Input } from '@/components/ui/input';
 
 export default function EventListPage() {
-  const [events, setEvents] = useState(mockEvents);
-  const [deleteId, setDeleteId] = useState(null);
-
-  const today = new Date();
-  const [dateRange, setDateRange] = useState({
-    from: new Date(today.getFullYear(), today.getMonth(), 1),
-    to: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+  const [events, setEvents] = useState([]);
+  const [dateRange, setDateRange] = useState(() => {
+    const today = new Date();
+    return {
+      from: new Date(today.getFullYear(), today.getMonth(), 1),
+      to: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+    };
   });
 
-  const handleDelete = (id) => {
-    setEvents(events.filter((event) => event.id !== id));
-    setDeleteId(null);
+  useEffect(() => {
+    getEvents(dateRange.from, dateRange.to)
+      .then(setEvents)
+      .catch((err) => console.error('Failed to load events:', err));
+  }, [dateRange]);
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteEvent(id);
+      setEvents((prev) => prev.filter((event) => event.id !== id));
+    } catch (err) {
+      console.error('Delete failed:', err);
+    }
   };
 
-  const handleSave = (newEvent) => {
-    setEvents((prev) => {
-      const exists = prev.find((e) => e.id === newEvent.id);
-      if (exists) {
-        return prev.map((e) => (e.id === newEvent.id ? newEvent : e));
+  const handleSave = async (newEvent) => {
+    try {
+      let saved;
+      if (newEvent.id) {
+        // 有 id：更新
+        saved = await updateEvent(newEvent.id, newEvent);
+      } else {
+        // 无 id：添加
+        saved = await addEvent(newEvent);
       }
-      return [...prev, newEvent];
-    });
+
+      setEvents((prev) => {
+        const exists = prev.find((e) => e.id === saved.id);
+        if (exists) {
+          return prev.map((e) => (e.id === saved.id ? saved : e));
+        }
+        return [...prev, saved];
+      });
+    } catch (err) {
+      console.error('Save failed:', err);
+    }
   };
 
   return (
@@ -57,19 +65,19 @@ export default function EventListPage() {
         <h2 className="text-2xl font-bold">List View</h2>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           {/* Search */}
-          {/* <Input
+          <Input
             type="text"
             placeholder="Search..."
             onChange={(e) => {
               // Searching logic
             }}
             className="w-[200px]"
-          /> */}
-          <ExpandableSearch
+          />
+          {/* <ExpandableSearch
             onSearch={(value) => {
               console.log('Search...', value)
             }}
-          />
+          /> */}
 
           {/* Date Picker */}
           <ExpandableDatePicker dateRange={dateRange} setDateRange={setDateRange} />

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
 const eventSchema = new mongoose.Schema(
   {
@@ -9,6 +9,6 @@ const eventSchema = new mongoose.Schema(
     priority: { type: Number, default: null },
   },
   { timestamps: true }
-);
+)
 
-export default mongoose.model('Event', eventSchema);
+export default mongoose.model('Event', eventSchema)

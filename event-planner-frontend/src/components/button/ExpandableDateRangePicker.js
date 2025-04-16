@@ -1,34 +1,34 @@
-import { useState } from 'react'
-import { format, startOfMonth, endOfMonth } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
-import { Calendar } from '@/components/ui/calendar'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { cn } from "@/lib/utils"
+import { useState } from 'react';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export default function ExpandableDatePicker({ dateRange, setDateRange }) {
-  const today = new Date()
-  const [isHovering, setIsHovering] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
+  const today = new Date();
+  const [isHovering, setIsHovering] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const shouldExpand = isHovering || isOpen
+  const shouldExpand = isHovering || isOpen;
 
   return (
     <div
       className={cn(
-        "relative flex items-center transition-all duration-500",
-        shouldExpand ? "gap-2" : "gap-0"
+        'relative flex items-center transition-all duration-500',
+        shouldExpand ? 'gap-2' : 'gap-0'
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => {
-        if (!isOpen) setIsHovering(false)
+        if (!isOpen) setIsHovering(false);
       }}
     >
       {/* Calander icon */}
       <div
         className={cn(
-          "transition-all duration-500 ease-in-out overflow-hidden",
-          shouldExpand ? "max-w-0 opacity-0 scale-95" : "max-w-[40px] opacity-100 scale-100"
+          'overflow-hidden transition-all duration-500 ease-in-out',
+          shouldExpand ? 'max-w-0 scale-95 opacity-0' : 'max-w-[40px] scale-100 opacity-100'
         )}
       >
         <Button
@@ -42,21 +42,21 @@ export default function ExpandableDatePicker({ dateRange, setDateRange }) {
       </div>
       <div
         className={cn(
-          "transition-all duration-500 ease-in-out overflow-hidden",
-          shouldExpand ? "max-w-[320px] opacity-100 scale-100" : "max-w-0 opacity-0 scale-95"
+          'overflow-hidden transition-all duration-500 ease-in-out',
+          shouldExpand ? 'max-w-[320px] scale-100 opacity-100' : 'max-w-0 scale-95 opacity-0'
         )}
       >
         <Popover
           open={isOpen}
           onOpenChange={(open) => {
-            setIsOpen(open)
-            if (!open) setIsHovering(false)
+            setIsOpen(open);
+            if (!open) setIsHovering(false);
           }}
         >
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="pl-3 w-[300px] justify-start text-left font-normal h-9"
+              className="h-9 w-[300px] justify-start pl-3 text-left font-normal"
             >
               {dateRange?.from ? (
                 dateRange.to ? (
@@ -84,5 +84,5 @@ export default function ExpandableDatePicker({ dateRange, setDateRange }) {
         </Popover>
       </div>
     </div>
-  )
+  );
 }

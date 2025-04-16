@@ -1,14 +1,14 @@
-import http from 'http';
-import createApp from './app.js';
+import http from 'http'
+import createApp from './app.js'
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8000
 const app = createApp(PORT)
-const server = http.createServer(app);
+const server = http.createServer(app)
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${PORT}`);
-});
+  console.log(`🚀 Server is running at http://localhost:${PORT}`)
+})
 
 server.on('error', (err) => {
-  console.error('❌ Server error:', err);
-});
+  console.error('❌ Server error:', err)
+})

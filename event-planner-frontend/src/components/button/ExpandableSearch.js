@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Search } from 'lucide-react'
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 
 export default function ExpandableSearch({ onSearch }) {
-  const [isHovering, setIsHovering] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
+  const [isHovering, setIsHovering] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
 
-  const shouldExpand = isHovering || isOpen
+  const shouldExpand = isHovering || isOpen;
 
   return (
     <div
@@ -21,14 +21,14 @@ export default function ExpandableSearch({ onSearch }) {
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => {
-        if (!isOpen) setIsHovering(false)
+        if (!isOpen) setIsHovering(false);
       }}
     >
       {/* Search icon */}
       <div
         className={cn(
-          'transition-all duration-500 ease-in-out overflow-hidden',
-          shouldExpand ? 'max-w-0 opacity-0 scale-95' : 'max-w-[40px] opacity-100 scale-100'
+          'overflow-hidden transition-all duration-500 ease-in-out',
+          shouldExpand ? 'max-w-0 scale-95 opacity-0' : 'max-w-[40px] scale-100 opacity-100'
         )}
       >
         <Button
@@ -44,7 +44,7 @@ export default function ExpandableSearch({ onSearch }) {
       <div
         className={cn(
           'transition-all duration-500 ease-in-out',
-          shouldExpand ? 'max-w-[220px] opacity-100 scale-100' : 'max-w-0 opacity-0 scale-95'
+          shouldExpand ? 'max-w-[220px] scale-100 opacity-100' : 'max-w-0 scale-95 opacity-0'
         )}
       >
         <Input
@@ -54,15 +54,15 @@ export default function ExpandableSearch({ onSearch }) {
           className="h-9 w-[200px]"
           onFocus={() => setIsOpen(true)}
           onBlur={() => {
-            setIsOpen(false)
-            setIsHovering(false)
+            setIsOpen(false);
+            setIsHovering(false);
           }}
           onChange={(e) => {
-            setSearchValue(e.target.value)
-            onSearch?.(e.target.value)
+            setSearchValue(e.target.value);
+            onSearch?.(e.target.value);
           }}
         />
       </div>
     </div>
-  )
+  );
 }

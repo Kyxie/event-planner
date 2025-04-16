@@ -38,11 +38,12 @@
  *           example: 1
  */
 
-import express from 'express';
-import { Response } from '../utils/Response.js';
-import Event from '../models/Event.js';
+import express from 'express'
+import { Response } from '../utils/Response.js'
+import Event from '../models/Event.js'
+import { startOfMonth, endOfMonth } from 'date-fns';
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -67,18 +68,18 @@ const router = express.Router();
  *         description: Missing required fields
  */
 router.post('/', async (req, res) => {
-  const { title, type, start, end, priority } = req.body;
+  const { title, type, start, end, priority } = req.body
   if (!title || !type || !start || !end) {
-    return Response.badRequest(res, 'Missing required fields');
+    return Response.badRequest(res, 'Missing required fields')
   }
   try {
-    const event = new Event({ title, type, start, end, priority });
-    await event.save();
-    return Response.success(res, event, 'Event created', 201);
+    const event = new Event({ title, type, start, end, priority })
+    await event.save()
+    return Response.success(res, event, 'Event created', 201)
   } catch (err) {
-    return Response.error(res, 'Failed to create event');
+    return Response.error(res, `Failed to create event: ${err.message || err}`)
   }
-});
+})
 
 /**
  * @swagger
@@ -103,15 +104,15 @@ router.post('/', async (req, res) => {
  */
 router.delete('/:id', async (req, res) => {
   try {
-    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+    const deletedEvent = await Event.findByIdAndDelete(req.params.id)
     if (!deletedEvent) {
-      return Response.badRequest(res, 'Event not found');
+      return Response.badRequest(res, 'Event not found')
     }
-    return Response.success(res, deletedEvent, 'Event deleted');
+    return Response.success(res, deletedEvent, 'Event deleted')
   } catch (err) {
-    return Response.error(res, 'Failed to delete event');
+    return Response.error(res, `Failed to delete event: ${err.message || err}`)
   }
-});
+})
 
 /**
  * @swagger
@@ -145,10 +146,10 @@ router.delete('/:id', async (req, res) => {
  *         description: Server error
  */
 router.put('/:id', async (req, res) => {
-  const { title, type, start, end, priority } = req.body;
+  const { title, type, start, end, priority } = req.body
 
   if (!title || !type || !start || !end) {
-    return Response.badRequest(res, 'Missing required fields');
+    return Response.badRequest(res, 'Missing required fields')
   }
 
   try {
@@ -156,17 +157,17 @@ router.put('/:id', async (req, res) => {
       req.params.id,
       { title, type, start, end, priority },
       { new: true, runValidators: true }
-    );
+    )
 
     if (!updated) {
-      return Response.badRequest(res, 'Event not found');
+      return Response.badRequest(res, 'Event not found')
     }
 
-    return Response.success(res, updated, 'Event updated');
+    return Response.success(res, updated, 'Event updated')
   } catch (err) {
-    return Response.error(res, 'Failed to update event');
+    return Response.error(res, `Failed to update event: ${err.message || err}`)
   }
-});
+})
 
 /**
  * @swagger
@@ -207,31 +208,32 @@ router.get('/', async (req, res) => {
   try {
     let { start, end } = req.query;
 
-    // If there is no start and end date, use current month
+    // If no start or end, use current month as default
     if (!start || !end) {
       const now = new Date();
-      const firstDay = startOfMonth(now);
-      const lastDay = endOfMonth(now);
-      start = firstDay.toISOString().slice(0, 10);
-      end = lastDay.toISOString().slice(0, 10);
+      start = startOfMonth(now).toISOString().slice(0, 10);
+      end = endOfMonth(now).toISOString().slice(0, 10);
     }
 
     const startDate = new Date(start);
     const endDate = new Date(end);
 
-    // Expand to the whole day
+    // Formatting
     startDate.setUTCHours(0, 0, 0, 0);
     endDate.setUTCHours(23, 59, 59, 999);
 
+    // Search if start >= startDate && start <= endDate
     const events = await Event.find({
-      start: { $gte: startDate },
-      end: { $lte: endDate },
+      start: {
+        $gte: startDate,
+        $lte: endDate,
+      },
     }).sort({ start: 1 });
 
     return Response.success(res, events);
   } catch (err) {
-    return Response.error(res, 'Failed to fetch events');
+    return Response.error(res, `Failed to fetch events: ${err.message || err}`);
   }
 });
 
-export default router;
+export default router
