@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import EventForm from './form';
+import EventForm from './EventForm';
 import { useState } from 'react';
 
 export default function EventDialog({ mode = 'add', trigger, event = {}, onSave }) {

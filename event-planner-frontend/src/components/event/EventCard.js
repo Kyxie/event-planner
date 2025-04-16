@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Pencil, Trash2 } from 'lucide-react';
-import EventDialog from './dialog';
+import EventDialog from './EventDialog';
 
 export default function EventCard({ event, onSave, onDelete }) {
   const [openDelete, setOpenDelete] = useState(false);
