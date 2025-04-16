@@ -1,6 +1,6 @@
 import '@/styles/globals.css';
 import { Inter } from 'next/font/google';
-import Link from 'next/link';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,6 +23,7 @@ export default function RootLayout({ children }) {
 
         {/* Main Content */}
         <main className="mx-auto w-full max-w-5xl flex-grow p-6">{children}</main>
+        <Toaster position="top-right" richColors />
 
         {/* Footer */}
         <footer className="border-t bg-white py-6 text-center text-sm text-gray-500">

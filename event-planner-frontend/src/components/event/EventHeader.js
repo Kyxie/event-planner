@@ -7,20 +7,20 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import EventDialog from '@/components/event/EventDialog';
 import Link from 'next/link';
-import { addEvent } from '@/api/events';
+import { addEvent, getEvents } from '@/api/events';
 
-export default function EventHeader({ dateRange, setDateRange, onSave, view }) {
+export default function EventHeader({ dateRange, setDateRange, onSave, view, setEvents }) {
   const handleAdd = async (eventData) => {
     try {
       await addEvent(eventData);
-      console.log(eventData)
       toast.success('Event added successfully');
       onSave();
     } catch (err) {
-      console.error(err);
+      console.error('Failed to add event:', err);
       toast.error('Failed to add event');
     }
   };
+
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <h2 className="text-2xl font-bold">{view === 'timeline' ? 'Timeline View' : 'List View'}</h2>
@@ -32,10 +32,21 @@ export default function EventHeader({ dateRange, setDateRange, onSave, view }) {
           onChange={(e) => {
             // Searching logic
           }}
-          className="w-[210px]"
+          className="w-[220px]"
         />
 
-        <ExpandableDatePicker dateRange={dateRange} setDateRange={setDateRange} />
+        <ExpandableDatePicker
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          fetchEvents={(start, end) => {
+            getEvents(start, end)
+              .then(setEvents)
+              .catch((err) => {
+                console.error('Failed to fetch:', err);
+                toast.error('Failed to load events');
+              });
+          }}
+        />
 
         {/* View change */}
         <Link href={view === 'timeline' ? '/events/list' : '/events/timeline'}>

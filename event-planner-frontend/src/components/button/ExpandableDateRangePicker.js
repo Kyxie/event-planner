@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-export default function ExpandableDatePicker({ dateRange, setDateRange }) {
+export default function ExpandableDatePicker({ dateRange, setDateRange, fetchEvents }) {
   const today = new Date();
   const [isHovering, setIsHovering] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,7 @@ export default function ExpandableDatePicker({ dateRange, setDateRange }) {
         if (!isOpen) setIsHovering(false);
       }}
     >
-      {/* Calander icon */}
+      {/* Calendar icon */}
       <div
         className={cn(
           'overflow-hidden transition-all duration-500 ease-in-out',
@@ -40,6 +40,7 @@ export default function ExpandableDatePicker({ dateRange, setDateRange }) {
           <CalendarIcon className="h-4 w-4" />
         </Button>
       </div>
+
       <div
         className={cn(
           'overflow-hidden transition-all duration-500 ease-in-out',
@@ -50,36 +51,47 @@ export default function ExpandableDatePicker({ dateRange, setDateRange }) {
           open={isOpen}
           onOpenChange={(open) => {
             setIsOpen(open);
-            if (!open) setIsHovering(false);
+            if (!open) {
+              setIsHovering(false);
+            }
           }}
         >
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="h-9 w-[210px] justify-start pl-3 text-left font-normal"
+              className="h-9 w-[220px] justify-center text-center font-normal"
             >
-              {dateRange?.from ? (
-                dateRange.to ? (
+              {dateRange?.startDate ? (
+                dateRange.endDate ? (
                   <>
-                    {format(dateRange.from, 'LLL dd, y')} - {format(dateRange.to, 'LLL dd, y')}
+                    {format(dateRange.startDate, 'LLL dd, y')} - {format(dateRange.endDate, 'LLL dd, y')}
                   </>
                 ) : (
-                  format(dateRange.from, 'LLL dd, y')
+                  format(dateRange.startDate, 'LLL dd, y')
                 )
               ) : (
-                <span>Pick a date</span>
+                <span>Pick a date range</span>
               )}
             </Button>
           </PopoverTrigger>
+
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={dateRange?.from || startOfMonth(today)}
-              selected={dateRange}
-              onSelect={setDateRange}
-              numberOfMonths={2}
-            />
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={dateRange?.startDate || startOfMonth(today)}
+            selected={{
+              from: dateRange.startDate,
+              to: dateRange.endDate,
+            }}
+            onSelect={(range) => {
+              setDateRange({
+                startDate: range?.from,
+                endDate: range?.to,
+              });
+            }}
+            numberOfMonths={2}
+          />
           </PopoverContent>
         </Popover>
       </div>

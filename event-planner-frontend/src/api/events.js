@@ -1,4 +1,5 @@
 import axios from './axios';
+import { toast } from 'sonner';
 
 const handleError = (error) => {
   const message = error.response?.data?.message || error.message || 'Something went wrong';
@@ -7,6 +8,10 @@ const handleError = (error) => {
 
 export const getEvents = async (start, end) => {
   try {
+    if (!(start instanceof Date) || !(end instanceof Date)) {
+      throw new Error('Invalid date range');
+    }
+
     const startStr = start.toISOString().split('T')[0];
     const endStr = end.toISOString().split('T')[0];
 
@@ -17,6 +22,7 @@ export const getEvents = async (start, end) => {
     return res.data?.data;
   } catch (error) {
     handleError(error);
+    toast.error('Failed to send get request');
   }
 };
 
@@ -26,6 +32,7 @@ export const addEvent = async (event) => {
     return res.data?.data;
   } catch (error) {
     handleError(error);
+    toast.error('Failed to send add request');
   }
 };
 
@@ -35,6 +42,7 @@ export const updateEvent = async (id, event) => {
     return res.data?.data;
   } catch (error) {
     handleError(error);
+    toast.error('Failed to send put request');
   }
 };
 
@@ -44,5 +52,6 @@ export const deleteEvent = async (id) => {
     return res.data?.data;
   } catch (error) {
     handleError(error);
+    toast.error('Failed to send delete request');
   }
 };

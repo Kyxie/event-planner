@@ -206,21 +206,21 @@ router.put('/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    let { start, end } = req.query;
+    let { startDate, endDate } = req.query;
 
     // If no start or end, use current month as default
-    if (!start || !end) {
+    if (!startDate || !endDate) {
       const now = new Date();
-      start = startOfMonth(now).toISOString().slice(0, 10);
-      end = endOfMonth(now).toISOString().slice(0, 10);
+      startDate = startOfMonth(now).toISOString().slice(0, 10);
+      endDate = endOfMonth(now).toISOString().slice(0, 10);
     }
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
 
     // Formatting
-    startDate.setUTCHours(0, 0, 0, 0);
-    endDate.setUTCHours(23, 59, 59, 999);
+    startDateObj.setUTCHours(0, 0, 0, 0);
+    endDateObj.setUTCHours(23, 59, 59, 999);
 
     // Search if start >= startDate && start <= endDate
     const events = await Event.find({
