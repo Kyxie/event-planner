@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { getEvents, updateEvent, deleteEvent, reorderEvents, resetEventOrder } from '@/api/events';
 import EventHeader from '@/components/event/EventHeader';
@@ -11,24 +11,26 @@ import useClientDateRange from '@/hooks/usePersistedDateRange';
 
 export default function EventListPage() {
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useClientDateRange();
 
-  useEffect(() => {
-    if (!dateRange) return;
-    fetchEvents();
-  }, [dateRange]);
-
-  if (!dateRange) return null;
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
+    if (!dateRange?.startDate || !dateRange?.endDate) return;
     try {
+      setLoading(true);
       const res = await getEvents(dateRange.startDate, dateRange.endDate);
       setEvents(res);
     } catch (err) {
       console.error('Failed to fetch events:', err);
       toast.error('Failed to load events');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleDelete = async (id) => {
     try {
@@ -50,10 +52,6 @@ export default function EventListPage() {
       console.error('Failed to update event:', err);
       toast.error('Failed to update event');
     }
-  };
-
-  const handleSave = () => {
-    fetchEvents();
   };
 
   const handleDragEnd = async (result) => {
@@ -89,18 +87,24 @@ export default function EventListPage() {
     }
   };
 
+  if (!dateRange) return null;
+
   return (
     <div>
       <EventHeader
         dateRange={dateRange}
         setDateRange={setDateRange}
-        onSave={handleSave}
+        onSave={fetchEvents}
         setEvents={setEvents}
         view="list"
         resetOrder={handleResetOrder}
       />
 
-      {events.length === 0 ? (
+      {loading ? (
+        <div className="rounded-xl border bg-white shadow-sm p-6 text-center text-gray-500">
+          Loading...
+        </div>
+      ) : events.length === 0 ? (
         <EventEmpty />
       ) : (
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -117,7 +121,7 @@ export default function EventListPage() {
                       >
                         <EventCard
                           event={event}
-                          onSave={handleSave}
+                          onSave={fetchEvents}
                           onDelete={handleDelete}
                           onUpdate={handleUpdate}
                         />

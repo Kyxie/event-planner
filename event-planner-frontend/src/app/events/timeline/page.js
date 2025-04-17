@@ -1,15 +1,18 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { toast } from 'sonner';
+
 import useClientDateRange from '@/hooks/usePersistedDateRange';
 import { getEvents, updateEvent, resetEventOrder } from '@/api/events';
+
 import EventHeader from '@/components/event/EventHeader';
 import EventEmpty from '@/components/event/EventEmpty';
 import TaskListHeader from '@/components/timeline/TaskListHeader';
 import TaskListTable from '@/components/timeline/TaskListTable';
+
 import {
   Select,
   SelectTrigger,
@@ -28,39 +31,28 @@ const typeColorMap = {
 export default function TimelinePage() {
   const [events, setEvents] = useState([]);
   const [viewMode, setViewMode] = useState(ViewMode.Week);
+  const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useClientDateRange();
 
-  useEffect(() => {
-    if (!dateRange) return;
-    fetchEvents();
-  }, [dateRange]);
+  const rowHeight = 50;
 
-  if (!dateRange) return null;
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
+    if (!dateRange?.startDate || !dateRange?.endDate) return;
     try {
+      setLoading(true);
       const res = await getEvents(dateRange.startDate, dateRange.endDate);
       setEvents(res);
     } catch (err) {
       console.error('Failed to fetch events:', err);
       toast.error('Failed to load events');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [dateRange]);
 
-  const tasks = events.map((event) => ({
-    id: event._id,
-    name: event.title,
-    type: 'task',
-    start: new Date(event.start),
-    end: new Date(event.end),
-    progress: 100,
-    styles: {
-      progressColor: typeColorMap[event.type] || typeColorMap.Default,
-      progressSelectedColor: '#000',
-    },
-  }));
-
-  const rowHeight = 50;
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const onDateChange = async (task) => {
     try {
@@ -86,19 +78,42 @@ export default function TimelinePage() {
     }
   };
 
+  const tasks = useMemo(() => {
+    return events.map((event) => ({
+      id: event._id,
+      name: event.title,
+      type: 'task',
+      start: new Date(event.start),
+      end: new Date(event.end),
+      progress: 100,
+      styles: {
+        progressColor: typeColorMap[event.type] || typeColorMap.Default,
+        progressSelectedColor: '#000',
+      },
+    }));
+  }, [events]);
+
+  const getColumnWidth = (mode) => {
+    switch (mode) {
+      case ViewMode.Day:
+        return 50;
+      case ViewMode.Week:
+        return 100;
+      case ViewMode.Month:
+        return 80;
+      default:
+        return 50;
+    }
+  };
+
+  if (!dateRange) return null;
+
   return (
     <div className="space-y-4">
       <EventHeader
         dateRange={dateRange}
         setDateRange={setDateRange}
-        onSave={() => {
-          getEvents(dateRange.startDate, dateRange.endDate)
-            .then(setEvents)
-            .catch((err) => {
-              console.error('Failed to reload events:', err);
-              toast.error('Failed to reload events');
-            });
-        }}
+        onSave={fetchEvents}
         setEvents={setEvents}
         view="timeline"
         resetOrder={handleResetOrder}
@@ -117,7 +132,11 @@ export default function TimelinePage() {
         </Select>
       </div>
 
-      {events.length === 0 ? (
+      {loading ? (
+        <div className="rounded-xl border bg-white shadow-sm p-6 text-center text-gray-500">
+          Loading...
+        </div>
+      ) : events.length === 0 ? (
         <EventEmpty />
       ) : (
         <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
@@ -125,9 +144,7 @@ export default function TimelinePage() {
             tasks={tasks}
             viewMode={viewMode}
             rowHeight={rowHeight}
-            columnWidth={
-              viewMode === 'Day' ? 50 : viewMode === 'Week' ? 100 : viewMode === 'Month' ? 80 : 50
-            }
+            columnWidth={getColumnWidth(viewMode)}
             onDateChange={onDateChange}
             TaskListHeader={() => <TaskListHeader rowHeight={rowHeight} />}
             TaskListTable={({ tasks }) => <TaskListTable tasks={tasks} rowHeight={rowHeight} />}
