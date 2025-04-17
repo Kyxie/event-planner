@@ -1,10 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import EventHeader from '@/components/event/EventHeader';
+import { useState, useEffect } from 'react';
 import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
-import '@/styles/timeline.css';
+import { toast } from 'sonner';
+
+import { getEvents, updateEvent } from '@/api/events';
+import EventHeader from '@/components/event/EventHeader';
+import EventEmpty from '@/components/event/EventEmpty';
+import TaskListHeader from '@/components/timeline/TaskListHeader';
+import TaskListTable from '@/components/timeline/TaskListTable';
 
 const typeColorMap = {
   Dividends: '#3b82f6',
@@ -13,88 +18,38 @@ const typeColorMap = {
   Default: '#6b7280',
 };
 
-const initialEvents = [
-  {
-    id: '1',
-    title: 'Q1 Earnings Call',
-    type: 'Dividends',
-    startDate: '2025-04-10',
-    endDate: '2025-04-11',
-  },
-  {
-    id: '2',
-    title: 'M&A Announcement',
-    type: 'Merger',
-    startDate: '2025-04-12',
-    endDate: '2025-04-15',
-  },
-  {
-    id: '3',
-    title: 'New CTO Hired',
-    type: 'Hire',
-    startDate: '2025-04-16',
-    endDate: '2025-04-17',
-  },
-];
-
 export default function TimelinePage() {
-  const [events, setEvents] = useState(initialEvents);
-  const [dateRange, setDateRange] = useState({
-    from: new Date(2025, 3, 1),
-    to: new Date(2025, 3, 30),
+  const [events, setEvents] = useState([]);
+  const [dateRange, setDateRange] = useState(() => {
+    const today = new Date();
+    return {
+      startDate: new Date(today.getFullYear(), today.getMonth(), 1),
+      endDate: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+    };
   });
 
-  const [newEvent, setNewEvent] = useState({
-    title: '',
-    type: 'Default',
-    startDate: '',
-    endDate: '',
-  });
+  useEffect(() => {
+    if (!dateRange.startDate || !dateRange.endDate) return;
 
-  const handleAddEvent = () => {
-    if (!newEvent.title || !newEvent.startDate || !newEvent.endDate) return;
-
-    const id = (events.length + 1).toString();
-    setEvents([...events, { id, ...newEvent }]);
-    setNewEvent({ title: '', type: 'Default', startDate: '', endDate: '' });
-  };
-
-  const handleDateChange = (task, newStart, newEnd) => {
-    setEvents((prev) =>
-      prev.map((e) =>
-        e.id === task.id
-          ? {
-              ...e,
-              startDate: newStart.toISOString().slice(0, 10),
-              endDate: newEnd.toISOString().slice(0, 10),
-            }
-          : e
-      )
-    );
-  };
-
-  const handleSave = (event) => {
-    setEvents((prev) => {
-      const exists = prev.find((e) => e.id === event.id);
-      if (exists) {
-        return prev.map((e) => (e.id === event.id ? event : e));
+    const fetchEvents = async () => {
+      try {
+        const res = await getEvents(dateRange.startDate, dateRange.endDate);
+        setEvents(res);
+      } catch (err) {
+        console.error('Failed to fetch events:', err);
+        toast.error('Failed to load events');
       }
-      return [...prev, event];
-    });
-  };
+    };
 
-  const filteredEvents = events.filter((event) => {
-    const start = new Date(event.startDate);
-    const end = new Date(event.endDate);
-    return start <= dateRange.to && end >= dateRange.from;
-  });
+    fetchEvents();
+  }, [dateRange]);
 
-  const tasks = filteredEvents.map((event) => ({
-    id: event.id,
+  const tasks = events.map((event) => ({
+    id: event._id,
     name: event.title,
     type: 'task',
-    start: new Date(event.startDate),
-    end: new Date(event.endDate),
+    start: new Date(event.start),
+    end: new Date(event.end),
     progress: 100,
     styles: {
       progressColor: typeColorMap[event.type] || typeColorMap.Default,
@@ -102,21 +57,39 @@ export default function TimelinePage() {
     },
   }));
 
+  const rowHeight = 50;
+
   return (
     <div>
       <EventHeader
         dateRange={dateRange}
         setDateRange={setDateRange}
-        onSave={handleSave}
+        onSave={() => {
+          getEvents(dateRange.startDate, dateRange.endDate)
+            .then(setEvents)
+            .catch((err) => {
+              console.error('Failed to reload events:', err);
+              toast.error('Failed to reload events');
+            });
+        }}
+        setEvents={setEvents}
         view="timeline"
       />
 
-      <Gantt
-        tasks={tasks}
-        viewMode={ViewMode.Day}
-        onDateChange={handleDateChange}
-        now={new Date()}
-      />
+      {events.length === 0 ? (
+        <EventEmpty />
+      ) : (
+        <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+          <Gantt
+            tasks={tasks}
+            viewMode={ViewMode.Day}
+            rowHeight={rowHeight}
+            listCellWidth="220px"
+            TaskListHeader={() => <TaskListHeader rowHeight={rowHeight} />}
+            TaskListTable={({ tasks }) => <TaskListTable tasks={tasks} rowHeight={rowHeight} />}
+          />
+        </div>
+      )}
     </div>
   );
 }

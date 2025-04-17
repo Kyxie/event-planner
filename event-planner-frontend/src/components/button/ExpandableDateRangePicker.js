@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -64,7 +64,8 @@ export default function ExpandableDatePicker({ dateRange, setDateRange, fetchEve
               {dateRange?.startDate ? (
                 dateRange.endDate ? (
                   <>
-                    {format(dateRange.startDate, 'LLL dd, y')} - {format(dateRange.endDate, 'LLL dd, y')}
+                    {format(dateRange.startDate, 'LLL dd, y')} -{' '}
+                    {format(dateRange.endDate, 'LLL dd, y')}
                   </>
                 ) : (
                   format(dateRange.startDate, 'LLL dd, y')
@@ -76,22 +77,22 @@ export default function ExpandableDatePicker({ dateRange, setDateRange, fetchEve
           </PopoverTrigger>
 
           <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            initialFocus
-            mode="range"
-            defaultMonth={dateRange?.startDate || startOfMonth(today)}
-            selected={{
-              from: dateRange.startDate,
-              to: dateRange.endDate,
-            }}
-            onSelect={(range) => {
-              setDateRange({
-                startDate: range?.from,
-                endDate: range?.to,
-              });
-            }}
-            numberOfMonths={2}
-          />
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.startDate || startOfMonth(today)}
+              selected={{
+                from: dateRange.startDate,
+                to: dateRange.endDate,
+              }}
+              onSelect={(range) => {
+                setDateRange({
+                  startDate: range?.from,
+                  endDate: range?.to,
+                });
+              }}
+              numberOfMonths={2}
+            />
           </PopoverContent>
         </Popover>
       </div>

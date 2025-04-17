@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getEvents, addEvent, updateEvent, deleteEvent } from '@/api/events';
+import { getEvents, updateEvent, deleteEvent } from '@/api/events';
 import EventHeader from '@/components/event/EventHeader';
 import EventCard from '@/components/event/EventCard';
 import { toast } from 'sonner';
+import EventEmpty from '@/components/event/EventEmpty';
 
 export default function EventListPage() {
   const [events, setEvents] = useState([]);
@@ -18,7 +19,7 @@ export default function EventListPage() {
 
   useEffect(() => {
     if (!dateRange.startDate || !dateRange.endDate) return;
-  
+
     getEvents(dateRange.startDate, dateRange.endDate)
       .then(setEvents)
       .catch((err) => {
@@ -47,7 +48,7 @@ export default function EventListPage() {
       console.error('Failed to update event:', err);
       toast.error('Failed to update event');
     }
-  }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -74,12 +75,17 @@ export default function EventListPage() {
       />
 
       {events.length === 0 ? (
-        <p>No events</p>
+        <EventEmpty />
       ) : (
         <ul className="space-y-4">
           {events.map((event) => (
             <li key={event._id}>
-              <EventCard event={event} onSave={handleSave} onDelete={handleDelete} onUpdate={handleUpdate} />
+              <EventCard
+                event={event}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
             </li>
           ))}
         </ul>

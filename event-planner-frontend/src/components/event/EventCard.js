@@ -23,7 +23,7 @@ export default function EventCard({ event, onSave, onDelete, onUpdate }) {
         <div>
           <h3 className="font-semibold">{event.title}</h3>
           <p>
-            {format(new Date(event.start), 'MMMM do, yyyy')} — {' '}
+            {format(new Date(event.start), 'MMMM do, yyyy')} —{' '}
             {format(new Date(event.end), 'MMMM do, yyyy')}
           </p>
           <p className="text-muted-foreground text-sm">{event.type}</p>

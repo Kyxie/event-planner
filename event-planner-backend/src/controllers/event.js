@@ -41,7 +41,7 @@
 import express from 'express'
 import { Response } from '../utils/Response.js'
 import Event from '../models/Event.js'
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth } from 'date-fns'
 
 const router = express.Router()
 
@@ -206,21 +206,21 @@ router.put('/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    let { startDate, endDate } = req.query;
+    let { startDate, endDate } = req.query
 
     // If no start or end, use current month as default
     if (!startDate || !endDate) {
-      const now = new Date();
-      startDate = startOfMonth(now).toISOString().slice(0, 10);
-      endDate = endOfMonth(now).toISOString().slice(0, 10);
+      const now = new Date()
+      startDate = startOfMonth(now).toISOString().slice(0, 10)
+      endDate = endOfMonth(now).toISOString().slice(0, 10)
     }
 
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
+    const startDateObj = new Date(startDate)
+    const endDateObj = new Date(endDate)
 
     // Formatting
-    startDateObj.setUTCHours(0, 0, 0, 0);
-    endDateObj.setUTCHours(23, 59, 59, 999);
+    startDateObj.setUTCHours(0, 0, 0, 0)
+    endDateObj.setUTCHours(23, 59, 59, 999)
 
     // Search if start >= startDate && start <= endDate
     const events = await Event.find({
@@ -228,12 +228,12 @@ router.get('/', async (req, res) => {
         $gte: startDate,
         $lte: endDate,
       },
-    }).sort({ start: 1 });
+    }).sort({ start: 1 })
 
-    return Response.success(res, events);
+    return Response.success(res, events)
   } catch (err) {
-    return Response.error(res, `Failed to fetch events: ${err.message || err}`);
+    return Response.error(res, `Failed to fetch events: ${err.message || err}`)
   }
-});
+})
 
 export default router
