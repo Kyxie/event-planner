@@ -10,7 +10,14 @@ import Link from 'next/link';
 import { addEvent, getEvents } from '@/api/events';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export default function EventHeader({ dateRange, setDateRange, onSave, view, setEvents, resetOrder,}) {
+export default function EventHeader({
+  dateRange,
+  setDateRange,
+  onSave,
+  view,
+  setEvents,
+  resetOrder,
+}) {
   const handleAdd = async (eventData) => {
     try {
       await addEvent(eventData);

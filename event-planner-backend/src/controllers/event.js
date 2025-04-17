@@ -146,29 +146,30 @@ router.delete('/:id', async (req, res) => {
  *         description: Server error
  */
 router.put('/:id', async (req, res) => {
-  const { title, type, start, end, priority } = req.body;
+  const { title, type, start, end, priority } = req.body
 
   try {
     const updated = await Event.findByIdAndUpdate(
       req.params.id,
-      { ...(title !== undefined && { title }),
+      {
+        ...(title !== undefined && { title }),
         ...(type !== undefined && { type }),
         ...(start !== undefined && { start }),
         ...(end !== undefined && { end }),
-        ...(priority !== undefined && { priority }) },
+        ...(priority !== undefined && { priority }),
+      },
       { new: true, runValidators: true }
-    );
+    )
 
     if (!updated) {
-      return Response.badRequest(res, 'Event not found');
+      return Response.badRequest(res, 'Event not found')
     }
 
-    return Response.success(res, updated, 'Event updated');
+    return Response.success(res, updated, 'Event updated')
   } catch (err) {
-    return Response.error(res, `Failed to update event: ${err.message || err}`);
+    return Response.error(res, `Failed to update event: ${err.message || err}`)
   }
-});
-
+})
 
 /**
  * @swagger
@@ -207,19 +208,19 @@ router.put('/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    let { startDate, endDate } = req.query;
+    let { startDate, endDate } = req.query
 
     // Default to current month if not provided
     if (!startDate || !endDate) {
-      const now = new Date();
-      startDate = startOfMonth(now).toISOString().slice(0, 10);
-      endDate = endOfMonth(now).toISOString().slice(0, 10);
+      const now = new Date()
+      startDate = startOfMonth(now).toISOString().slice(0, 10)
+      endDate = endOfMonth(now).toISOString().slice(0, 10)
     }
 
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
-    startDateObj.setUTCHours(0, 0, 0, 0);
-    endDateObj.setUTCHours(23, 59, 59, 999);
+    const startDateObj = new Date(startDate)
+    const endDateObj = new Date(endDate)
+    startDateObj.setUTCHours(0, 0, 0, 0)
+    endDateObj.setUTCHours(23, 59, 59, 999)
 
     // Find and sort
     const events = await Event.find({
@@ -230,14 +231,14 @@ router.get('/', async (req, res) => {
     }).sort({
       // If priority not null, goes first
       priority: 1,
-      start: 1                // If same priority
-    });
+      start: 1, // If same priority
+    })
 
-    return Response.success(res, events);
+    return Response.success(res, events)
   } catch (err) {
-    return Response.error(res, `Failed to fetch events: ${err.message || err}`, 500);
+    return Response.error(res, `Failed to fetch events: ${err.message || err}`, 500)
   }
-});
+})
 
 /**
  * @swagger
@@ -264,10 +265,10 @@ router.get('/', async (req, res) => {
  */
 router.post('/reorder', async (req, res) => {
   try {
-    const orderedIds = req.body;
+    const orderedIds = req.body
 
-    if (!Array.isArray(orderedIds) || orderedIds.some(id => typeof id !== 'string')) {
-      return Response.error(res, 'Invalid format. Expecting array of event IDs.', 400);
+    if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
+      return Response.error(res, 'Invalid format. Expecting array of event IDs.', 400)
     }
 
     const bulkOps = orderedIds.map((id, index) => ({
@@ -275,14 +276,14 @@ router.post('/reorder', async (req, res) => {
         filter: { _id: id },
         update: { $set: { priority: index * 100 } },
       },
-    }));
+    }))
 
-    await Event.bulkWrite(bulkOps);
-    return Response.success(res, { message: 'Priorities updated successfully' });
+    await Event.bulkWrite(bulkOps)
+    return Response.success(res, { message: 'Priorities updated successfully' })
   } catch (err) {
-    return Response.error(res, `Failed to reorder events: ${err.message || err}`, 500);
+    return Response.error(res, `Failed to reorder events: ${err.message || err}`, 500)
   }
-});
+})
 
 /**
  * @swagger
@@ -298,19 +299,19 @@ router.post('/reorder', async (req, res) => {
  */
 router.post('/resetOrder', async (req, res) => {
   try {
-    const events = await Event.find({}, { _id: 1 });
+    const events = await Event.find({}, { _id: 1 })
     const bulkOps = events.map((event) => ({
       updateOne: {
         filter: { _id: event._id },
         update: { $set: { priority: null } },
       },
-    }));
+    }))
 
-    await Event.bulkWrite(bulkOps);
-    return Response.success(res, { message: 'All event priorities cleared' });
+    await Event.bulkWrite(bulkOps)
+    return Response.success(res, { message: 'All event priorities cleared' })
   } catch (err) {
-    return Response.error(res, `Failed to clear priorities: ${err.message || err}`, 500);
+    return Response.error(res, `Failed to clear priorities: ${err.message || err}`, 500)
   }
-});
+})
 
 export default router

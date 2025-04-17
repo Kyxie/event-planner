@@ -4,7 +4,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { toast } from 'sonner';
-
+import useClientDateRange from '@/hooks/usePersistedDateRange';
 import { getEvents, updateEvent, resetEventOrder } from '@/api/events';
 import EventHeader from '@/components/event/EventHeader';
 import EventEmpty from '@/components/event/EventEmpty';
@@ -28,16 +28,16 @@ const typeColorMap = {
 export default function TimelinePage() {
   const [events, setEvents] = useState([]);
   const [viewMode, setViewMode] = useState(ViewMode.Week);
-  const [dateRange, setDateRange] = useState(() => {
-    const today = new Date();
-    return {
-      startDate: new Date(today.getFullYear(), today.getMonth(), 1),
-      endDate: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-    };
-  });
+  const [dateRange, setDateRange] = useClientDateRange();
 
-  const fetchEvents = useCallback(async () => {
-    if (!dateRange.startDate || !dateRange.endDate) return;
+  useEffect(() => {
+    if (!dateRange) return;
+    fetchEvents();
+  }, [dateRange]);
+
+  if (!dateRange) return null;
+
+  const fetchEvents = async () => {
     try {
       const res = await getEvents(dateRange.startDate, dateRange.endDate);
       setEvents(res);
@@ -45,11 +45,7 @@ export default function TimelinePage() {
       console.error('Failed to fetch events:', err);
       toast.error('Failed to load events');
     }
-  }, [dateRange.startDate, dateRange.endDate]);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+  };
 
   const tasks = events.map((event) => ({
     id: event._id,

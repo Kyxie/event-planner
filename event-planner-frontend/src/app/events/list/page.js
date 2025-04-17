@@ -7,29 +7,26 @@ import EventHeader from '@/components/event/EventHeader';
 import EventCard from '@/components/event/EventCard';
 import { toast } from 'sonner';
 import EventEmpty from '@/components/event/EventEmpty';
+import useClientDateRange from '@/hooks/usePersistedDateRange';
 
 export default function EventListPage() {
   const [events, setEvents] = useState([]);
-
-  const [dateRange, setDateRange] = useState(() => {
-    const today = new Date();
-    return {
-      startDate: new Date(today.getFullYear(), today.getMonth(), 1),
-      endDate: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-    };
-  });
+  const [dateRange, setDateRange] = useClientDateRange();
 
   useEffect(() => {
+    if (!dateRange) return;
     fetchEvents();
   }, [dateRange]);
 
+  if (!dateRange) return null;
+
   const fetchEvents = async () => {
     try {
-      const data = await getEvents(dateRange.startDate, dateRange.endDate);
-      setEvents(data);
+      const res = await getEvents(dateRange.startDate, dateRange.endDate);
+      setEvents(res);
     } catch (err) {
-      console.error('Failed to load events:', err);
-      toast.error('Failed to load event');
+      console.error('Failed to fetch events:', err);
+      toast.error('Failed to load events');
     }
   };
 
