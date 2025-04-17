@@ -12,9 +12,9 @@ export default function TaskListTable({ tasks, rowHeight }) {
             height: rowHeight,
             lineHeight: `${rowHeight}px`,
           }}
-          className="flex items-center gap-2 px-4 text-sm whitespace-nowrap text-black truncate overflow-hidden"
+          className="flex items-center gap-2 truncate overflow-hidden px-4 text-sm whitespace-nowrap text-black"
         >
-          <ClipboardList className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+          <ClipboardList className="text-muted-foreground h-4 w-4 flex-shrink-0" />
           <span className="truncate">{task.name}</span>
         </div>
       ))}

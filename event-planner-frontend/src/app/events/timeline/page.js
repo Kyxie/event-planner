@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { toast } from 'sonner';
@@ -10,6 +10,7 @@ import EventHeader from '@/components/event/EventHeader';
 import EventEmpty from '@/components/event/EventEmpty';
 import TaskListHeader from '@/components/timeline/TaskListHeader';
 import TaskListTable from '@/components/timeline/TaskListTable';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const typeColorMap = {
   Dividends: '#3b82f6',
@@ -20,6 +21,7 @@ const typeColorMap = {
 
 export default function TimelinePage() {
   const [events, setEvents] = useState([]);
+  const [viewMode, setViewMode] = useState(ViewMode.Week);
   const [dateRange, setDateRange] = useState(() => {
     const today = new Date();
     return {
@@ -28,21 +30,20 @@ export default function TimelinePage() {
     };
   });
 
-  useEffect(() => {
+  const fetchEvents = useCallback(async () => {
     if (!dateRange.startDate || !dateRange.endDate) return;
-
-    const fetchEvents = async () => {
-      try {
-        const res = await getEvents(dateRange.startDate, dateRange.endDate);
-        setEvents(res);
-      } catch (err) {
-        console.error('Failed to fetch events:', err);
-        toast.error('Failed to load events');
-      }
-    };
-
+    try {
+      const res = await getEvents(dateRange.startDate, dateRange.endDate);
+      setEvents(res);
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
+      toast.error('Failed to load events');
+    }
+  }, [dateRange.startDate, dateRange.endDate]);
+  
+  useEffect(() => {
     fetchEvents();
-  }, [dateRange]);
+  }, [fetchEvents]);
 
   const tasks = events.map((event) => ({
     id: event._id,
@@ -58,9 +59,23 @@ export default function TimelinePage() {
   }));
 
   const rowHeight = 50;
+  
+  const onDateChange = async (task) => {
+    try {
+      await updateEvent(task.id, {
+        start: task.start,
+        end: task.end,
+      });
+      toast.success('Updated task date');
+      await fetchEvents();
+    } catch (err) {
+      console.error('Failed to update task date:', err);
+      toast.error('Failed to update task');
+    }
+  };
 
   return (
-    <div>
+    <div className="space-y-4">
       <EventHeader
         dateRange={dateRange}
         setDateRange={setDateRange}
@@ -76,19 +91,38 @@ export default function TimelinePage() {
         view="timeline"
       />
 
+      <div className="flex justify-end">
+        <Select value={viewMode} onValueChange={(val) => setViewMode(val)}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Select View Mode" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ViewMode.Day}>Day</SelectItem>
+            <SelectItem value={ViewMode.Week}>Week</SelectItem>
+            <SelectItem value={ViewMode.Month}>Month</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {events.length === 0 ? (
         <EventEmpty />
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
-          <Gantt
-            tasks={tasks}
-            viewMode={ViewMode.Day}
-            rowHeight={rowHeight}
-            listCellWidth="220px"
-            TaskListHeader={() => <TaskListHeader rowHeight={rowHeight} />}
-            TaskListTable={({ tasks }) => <TaskListTable tasks={tasks} rowHeight={rowHeight} />}
-          />
-        </div>
+          <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
+            <Gantt
+              tasks={tasks}
+              viewMode={viewMode}
+              rowHeight={rowHeight}
+              columnWidth={
+                viewMode === 'Day' ? 50 :
+                viewMode === 'Week' ? 100 :
+                viewMode === 'Month' ? 80 :
+                50
+              }
+              onDateChange={onDateChange}
+              TaskListHeader={() => <TaskListHeader rowHeight={rowHeight} />}
+              TaskListTable={({ tasks }) => <TaskListTable tasks={tasks} rowHeight={rowHeight} />}
+            />
+          </div>
       )}
     </div>
   );

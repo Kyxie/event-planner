@@ -146,28 +146,29 @@ router.delete('/:id', async (req, res) => {
  *         description: Server error
  */
 router.put('/:id', async (req, res) => {
-  const { title, type, start, end, priority } = req.body
-
-  if (!title || !type || !start || !end) {
-    return Response.badRequest(res, 'Missing required fields')
-  }
+  const { title, type, start, end, priority } = req.body;
 
   try {
     const updated = await Event.findByIdAndUpdate(
       req.params.id,
-      { title, type, start, end, priority },
+      { ...(title !== undefined && { title }),
+        ...(type !== undefined && { type }),
+        ...(start !== undefined && { start }),
+        ...(end !== undefined && { end }),
+        ...(priority !== undefined && { priority }) },
       { new: true, runValidators: true }
-    )
+    );
 
     if (!updated) {
-      return Response.badRequest(res, 'Event not found')
+      return Response.badRequest(res, 'Event not found');
     }
 
-    return Response.success(res, updated, 'Event updated')
+    return Response.success(res, updated, 'Event updated');
   } catch (err) {
-    return Response.error(res, `Failed to update event: ${err.message || err}`)
+    return Response.error(res, `Failed to update event: ${err.message || err}`);
   }
-})
+});
+
 
 /**
  * @swagger
