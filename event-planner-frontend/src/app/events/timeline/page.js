@@ -1,16 +1,22 @@
 'use client';
 
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { toast } from 'sonner';
 
-import { getEvents, updateEvent } from '@/api/events';
+import { getEvents, updateEvent, resetEventOrder } from '@/api/events';
 import EventHeader from '@/components/event/EventHeader';
 import EventEmpty from '@/components/event/EventEmpty';
 import TaskListHeader from '@/components/timeline/TaskListHeader';
 import TaskListTable from '@/components/timeline/TaskListTable';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 const typeColorMap = {
   Dividends: '#3b82f6',
@@ -40,7 +46,7 @@ export default function TimelinePage() {
       toast.error('Failed to load events');
     }
   }, [dateRange.startDate, dateRange.endDate]);
-  
+
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
@@ -59,7 +65,7 @@ export default function TimelinePage() {
   }));
 
   const rowHeight = 50;
-  
+
   const onDateChange = async (task) => {
     try {
       await updateEvent(task.id, {
@@ -71,6 +77,16 @@ export default function TimelinePage() {
     } catch (err) {
       console.error('Failed to update task date:', err);
       toast.error('Failed to update task');
+    }
+  };
+
+  const handleResetOrder = async () => {
+    try {
+      await resetEventOrder();
+      toast.success('Order reset successfully');
+      fetchEvents();
+    } catch (err) {
+      console.error('Failed to reset order:', err);
     }
   };
 
@@ -89,11 +105,12 @@ export default function TimelinePage() {
         }}
         setEvents={setEvents}
         view="timeline"
+        resetOrder={handleResetOrder}
       />
 
       <div className="flex justify-end">
         <Select value={viewMode} onValueChange={(val) => setViewMode(val)}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="Select View Mode" />
           </SelectTrigger>
           <SelectContent>
@@ -107,22 +124,19 @@ export default function TimelinePage() {
       {events.length === 0 ? (
         <EventEmpty />
       ) : (
-          <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
-            <Gantt
-              tasks={tasks}
-              viewMode={viewMode}
-              rowHeight={rowHeight}
-              columnWidth={
-                viewMode === 'Day' ? 50 :
-                viewMode === 'Week' ? 100 :
-                viewMode === 'Month' ? 80 :
-                50
-              }
-              onDateChange={onDateChange}
-              TaskListHeader={() => <TaskListHeader rowHeight={rowHeight} />}
-              TaskListTable={({ tasks }) => <TaskListTable tasks={tasks} rowHeight={rowHeight} />}
-            />
-          </div>
+        <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
+          <Gantt
+            tasks={tasks}
+            viewMode={viewMode}
+            rowHeight={rowHeight}
+            columnWidth={
+              viewMode === 'Day' ? 50 : viewMode === 'Week' ? 100 : viewMode === 'Month' ? 80 : 50
+            }
+            onDateChange={onDateChange}
+            TaskListHeader={() => <TaskListHeader rowHeight={rowHeight} />}
+            TaskListTable={({ tasks }) => <TaskListTable tasks={tasks} rowHeight={rowHeight} />}
+          />
+        </div>
       )}
     </div>
   );

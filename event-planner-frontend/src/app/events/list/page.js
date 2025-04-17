@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getEvents, updateEvent, deleteEvent } from '@/api/events';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { getEvents, updateEvent, deleteEvent, reorderEvents, resetEventOrder } from '@/api/events';
 import EventHeader from '@/components/event/EventHeader';
 import EventCard from '@/components/event/EventCard';
 import { toast } from 'sonner';
@@ -9,6 +10,7 @@ import EventEmpty from '@/components/event/EventEmpty';
 
 export default function EventListPage() {
   const [events, setEvents] = useState([]);
+
   const [dateRange, setDateRange] = useState(() => {
     const today = new Date();
     return {
@@ -18,21 +20,24 @@ export default function EventListPage() {
   });
 
   useEffect(() => {
-    if (!dateRange.startDate || !dateRange.endDate) return;
-
-    getEvents(dateRange.startDate, dateRange.endDate)
-      .then(setEvents)
-      .catch((err) => {
-        console.error('Failed to load events:', err);
-        toast.error('Failed to load event');
-      });
+    fetchEvents();
   }, [dateRange]);
+
+  const fetchEvents = async () => {
+    try {
+      const data = await getEvents(dateRange.startDate, dateRange.endDate);
+      setEvents(data);
+    } catch (err) {
+      console.error('Failed to load events:', err);
+      toast.error('Failed to load event');
+    }
+  };
 
   const handleDelete = async (id) => {
     try {
       await deleteEvent(id);
       fetchEvents();
-      toast.success('Event delete successfully');
+      toast.success('Event deleted successfully');
     } catch (err) {
       console.error('Failed to delete event:', err);
       toast.error('Failed to delete event');
@@ -43,25 +48,48 @@ export default function EventListPage() {
     try {
       await updateEvent(id, updatedData);
       fetchEvents();
-      toast.success('Event update successfully');
+      toast.success('Event updated successfully');
     } catch (err) {
       console.error('Failed to update event:', err);
       toast.error('Failed to update event');
     }
   };
 
-  const fetchEvents = async () => {
+  const handleSave = () => {
+    fetchEvents();
+  };
+
+  const handleDragEnd = async (result) => {
+    const { destination, source } = result;
+
+    if (!destination || destination.index === source.index) return;
+
+    const reordered = [...events];
+    const [moved] = reordered.splice(source.index, 1);
+    reordered.splice(destination.index, 0, moved);
+
+    setEvents(reordered);
+
+    const orderedIds = reordered.map((e) => e._id);
+
     try {
-      const data = await getEvents(dateRange.startDate, dateRange.endDate);
-      setEvents(data);
+      await reorderEvents(orderedIds);
+      toast.success('Event order saved');
+      fetchEvents();
     } catch (err) {
-      console.error('Failed to load event:', err);
-      toast.error('Failed to load event');
+      console.error('Failed to reorder:', err);
+      toast.error('Failed to reorder events');
     }
   };
 
-  const handleSave = () => {
-    fetchEvents();
+  const handleResetOrder = async () => {
+    try {
+      await resetEventOrder();
+      toast.success('Order reset successfully');
+      fetchEvents();
+    } catch (err) {
+      console.error('Failed to reset order:', err);
+    }
   };
 
   return (
@@ -72,23 +100,39 @@ export default function EventListPage() {
         onSave={handleSave}
         setEvents={setEvents}
         view="list"
+        resetOrder={handleResetOrder}
       />
 
       {events.length === 0 ? (
         <EventEmpty />
       ) : (
-        <ul className="space-y-4">
-          {events.map((event) => (
-            <li key={event._id}>
-              <EventCard
-                event={event}
-                onSave={handleSave}
-                onDelete={handleDelete}
-                onUpdate={handleUpdate}
-              />
-            </li>
-          ))}
-        </ul>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="event-list">
+            {(provided) => (
+              <ul className="space-y-4" ref={provided.innerRef} {...provided.droppableProps}>
+                {events.map((event, index) => (
+                  <Draggable key={event._id} draggableId={event._id} index={index}>
+                    {(provided) => (
+                      <li
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <EventCard
+                          event={event}
+                          onSave={handleSave}
+                          onDelete={handleDelete}
+                          onUpdate={handleUpdate}
+                        />
+                      </li>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </ul>
+            )}
+          </Droppable>
+        </DragDropContext>
       )}
     </div>
   );

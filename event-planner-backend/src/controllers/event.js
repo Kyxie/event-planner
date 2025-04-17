@@ -174,7 +174,7 @@ router.put('/:id', async (req, res) => {
  * @swagger
  * /api/events:
  *   get:
- *     summary: Get events within a specific date range (day-level precision)
+ *     summary: Get events within a specific date range, ordered by priority (if available)
  *     tags: [Events]
  *     parameters:
  *       - in: query
@@ -193,7 +193,7 @@ router.put('/:id', async (req, res) => {
  *         description: End date in YYYY-MM-DD format
  *     responses:
  *       200:
- *         description: List of events in the range
+ *         description: List of events in the range, sorted by priority
  *         content:
  *           application/json:
  *             schema:
@@ -207,34 +207,110 @@ router.put('/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    let { startDate, endDate } = req.query
+    let { startDate, endDate } = req.query;
 
-    // If no start or end, use current month as default
+    // Default to current month if not provided
     if (!startDate || !endDate) {
-      const now = new Date()
-      startDate = startOfMonth(now).toISOString().slice(0, 10)
-      endDate = endOfMonth(now).toISOString().slice(0, 10)
+      const now = new Date();
+      startDate = startOfMonth(now).toISOString().slice(0, 10);
+      endDate = endOfMonth(now).toISOString().slice(0, 10);
     }
 
-    const startDateObj = new Date(startDate)
-    const endDateObj = new Date(endDate)
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    startDateObj.setUTCHours(0, 0, 0, 0);
+    endDateObj.setUTCHours(23, 59, 59, 999);
 
-    // Formatting
-    startDateObj.setUTCHours(0, 0, 0, 0)
-    endDateObj.setUTCHours(23, 59, 59, 999)
-
-    // Search if start >= startDate && start <= endDate
+    // Find and sort
     const events = await Event.find({
       start: {
-        $gte: startDate,
-        $lte: endDate,
+        $gte: startDateObj,
+        $lte: endDateObj,
       },
-    }).sort({ start: 1 })
+    }).sort({
+      // If priority not null, goes first
+      priority: 1,
+      start: 1                // If same priority
+    });
 
-    return Response.success(res, events)
+    return Response.success(res, events);
   } catch (err) {
-    return Response.error(res, `Failed to fetch events: ${err.message || err}`)
+    return Response.error(res, `Failed to fetch events: ${err.message || err}`, 500);
   }
-})
+});
+
+/**
+ * @swagger
+ * /api/events/reorder:
+ *   post:
+ *     summary: Reorder events by new ID order. Priority will be reassigned on backend.
+ *     tags: [Events]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: string
+ *               description: Event ID in desired order
+ *     responses:
+ *       200:
+ *         description: Priorities updated
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.post('/reorder', async (req, res) => {
+  try {
+    const orderedIds = req.body;
+
+    if (!Array.isArray(orderedIds) || orderedIds.some(id => typeof id !== 'string')) {
+      return Response.error(res, 'Invalid format. Expecting array of event IDs.', 400);
+    }
+
+    const bulkOps = orderedIds.map((id, index) => ({
+      updateOne: {
+        filter: { _id: id },
+        update: { $set: { priority: index * 100 } },
+      },
+    }));
+
+    await Event.bulkWrite(bulkOps);
+    return Response.success(res, { message: 'Priorities updated successfully' });
+  } catch (err) {
+    return Response.error(res, `Failed to reorder events: ${err.message || err}`, 500);
+  }
+});
+
+/**
+ * @swagger
+ * /api/events/reset-priority:
+ *   post:
+ *     summary: Remove all event priority values (set to null)
+ *     tags: [Events]
+ *     responses:
+ *       200:
+ *         description: All priorities cleared
+ *       500:
+ *         description: Server error
+ */
+router.post('/resetOrder', async (req, res) => {
+  try {
+    const events = await Event.find({}, { _id: 1 });
+    const bulkOps = events.map((event) => ({
+      updateOne: {
+        filter: { _id: event._id },
+        update: { $set: { priority: null } },
+      },
+    }));
+
+    await Event.bulkWrite(bulkOps);
+    return Response.success(res, { message: 'All event priorities cleared' });
+  } catch (err) {
+    return Response.error(res, `Failed to clear priorities: ${err.message || err}`, 500);
+  }
+});
 
 export default router

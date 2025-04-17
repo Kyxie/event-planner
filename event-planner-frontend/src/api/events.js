@@ -55,3 +55,25 @@ export const deleteEvent = async (id) => {
     toast.error('Failed to send delete request');
   }
 };
+
+export const reorderEvents = async (orderedIds) => {
+  try {
+    const res = await axios.post('/events/reorder', orderedIds);
+    return res.data;
+  } catch (err) {
+    handleError(err);
+    toast.error('Failed to reorder events');
+    throw err;
+  }
+};
+
+export const resetEventOrder = async () => {
+  try {
+    const res = await axios.post('/events/resetOrder');
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    toast.error('Failed to reset order');
+    throw error;
+  }
+};
