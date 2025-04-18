@@ -37,8 +37,11 @@ export default function EventListPage() {
 
   useEffect(() => {
     fetchEvents();
-    fetchEventTypes();
   }, [fetchEvents]);
+
+  useEffect(() => {
+    fetchEventTypes();
+  }, []);
 
   const handleDelete = async (event) => {
     try {
@@ -60,7 +63,7 @@ export default function EventListPage() {
 
   const handleUpdate = async (id, updatedData) => {
     try {
-      const existing = events.find(e => e._id === id);
+      const existing = events.find((e) => e._id === id);
       if (!existing) return;
       await updateEvent(id, updatedData);
 

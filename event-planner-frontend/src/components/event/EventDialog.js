@@ -23,7 +23,7 @@ export default function EventDialog({
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const open = controlledOpen ?? uncontrolledOpen;
-  const setOpen = onOpenChange ?? setUncontrolledOpen; 
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
 
   const handleSubmit = async (data) => {
     onSave(data);
@@ -37,11 +37,7 @@ export default function EventDialog({
         <DialogHeader>
           <DialogTitle>{mode === 'add' ? 'Add Event' : 'Edit Event'}</DialogTitle>
         </DialogHeader>
-        <EventForm
-          initialData={event}
-          onSubmit={handleSubmit}
-          eventTypes={eventTypes}
-        />
+        <EventForm initialData={event} onSubmit={handleSubmit} eventTypes={eventTypes} />
         <DialogFooter />
       </DialogContent>
     </Dialog>

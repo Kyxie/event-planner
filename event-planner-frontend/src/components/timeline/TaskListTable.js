@@ -14,7 +14,7 @@ export default function TaskListTable({ tasks, rowHeight, onClickTask }) {
             lineHeight: `${rowHeight}px`,
             cursor: 'pointer',
           }}
-          className="flex items-center gap-2 truncate overflow-hidden px-4 text-sm whitespace-nowrap text-black hover:bg-accent"
+          className="hover:bg-accent flex items-center gap-2 truncate overflow-hidden px-4 text-sm whitespace-nowrap text-black"
         >
           <ClipboardList className="text-muted-foreground h-4 w-4 flex-shrink-0" />
           <span className="truncate">{task.name}</span>
@@ -23,4 +23,3 @@ export default function TaskListTable({ tasks, rowHeight, onClickTask }) {
     </div>
   );
 }
-

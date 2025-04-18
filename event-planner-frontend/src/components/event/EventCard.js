@@ -14,7 +14,14 @@ import { Pencil, Trash2 } from 'lucide-react';
 import EventDialog from './EventDialog';
 import { format } from 'date-fns';
 
-export default function EventCard({ event, onSave, onDelete, onUpdate, eventTypes, refreshEventTypes }) {
+export default function EventCard({
+  event,
+  onSave,
+  onDelete,
+  onUpdate,
+  eventTypes,
+  refreshEventTypes,
+}) {
   const [openDelete, setOpenDelete] = useState(false);
 
   return (

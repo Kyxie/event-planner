@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 import useClientDateRange from '@/hooks/usePersistedDateRange';
 import { getEvents, updateEvent, resetEventOrder } from '@/api/events';
-
+import { getAllEventTypes, addEventType } from '@/api/eventTypes';
 import EventHeader from '@/components/event/EventHeader';
 import EventEmpty from '@/components/event/EventEmpty';
 import TaskListHeader from '@/components/timeline/TaskListHeader';
@@ -22,13 +22,6 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 
-const typeColorMap = {
-  Dividends: '#3b82f6',
-  Merger: '#10b981',
-  Hire: '#f59e0b',
-  Default: '#6b7280',
-};
-
 export default function TimelinePage() {
   const [events, setEvents] = useState([]);
   const [viewMode, setViewMode] = useState(ViewMode.Week);
@@ -36,6 +29,12 @@ export default function TimelinePage() {
   const [dateRange, setDateRange] = useClientDateRange();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [eventTypes, setEventTypes] = useState([]);
+
+  const fetchEventTypes = async () => {
+    const types = await getAllEventTypes();
+    setEventTypes(types);
+  };
 
   const handleSave = async (updatedEvent) => {
     try {
@@ -69,6 +68,10 @@ export default function TimelinePage() {
     fetchEvents();
   }, [fetchEvents]);
 
+  useEffect(() => {
+    fetchEventTypes();
+  }, []);
+
   const onDateChange = async (task) => {
     try {
       await updateEvent(task.id, {
@@ -93,6 +96,27 @@ export default function TimelinePage() {
     }
   };
 
+  const typeColorMap = useMemo(() => {
+    const map = {};
+    const colorPalette = [
+      '#ffb340', // Orange
+      '#31de4b', // Green
+      '#70d7ff', // Light Blue
+      '#409cff', // Blue
+      '#ffd426', // Yellow
+      '#66d4cf', // Teal
+      '#7d7aff', // Indigo
+      '#b59469', // Brown
+      '#da8fff', // Purple
+      '#ff4136', // Red
+    ];
+    eventTypes.forEach((type, index) => {
+      console.log(type);
+      map[type] = colorPalette[index % colorPalette.length];
+    });
+    return map;
+  }, [eventTypes]);
+
   const tasks = useMemo(() => {
     return events.map((event) => ({
       id: event._id,
@@ -103,7 +127,7 @@ export default function TimelinePage() {
       end: new Date(event.end),
       progress: 100,
       styles: {
-        progressColor: typeColorMap[event.type] || typeColorMap.Default,
+        progressColor: typeColorMap[event.type] || '#6b7280',
         progressSelectedColor: '#000',
       },
     }));
@@ -133,6 +157,8 @@ export default function TimelinePage() {
         setEvents={setEvents}
         view="timeline"
         resetOrder={handleResetOrder}
+        eventTypes={eventTypes}
+        refreshEventTypes={fetchEventTypes}
       />
 
       <div className="flex justify-end">
