@@ -31,8 +31,8 @@ This is an elegant and intuitive event management tool built with **Next.js**, *
 
 To set up the project locally, please refer to the respective README files in each project folder:
 
-- 📁 **Frontend**: [`/frontend/README.md`](./frontend/README.md)
-- 📁 **Backend**: [`/backend/README.md`](./backend/README.md)
+- 📁 **Frontend**: [`/event-planner-frontend/README.md`](./event-planner-frontend/README.md)
+- 📁 **Backend**: [`/event-planner-backend/README.md`](./event-planner-backend/README.md)
 
 Each README provides detailed instructions on how to install dependencies, run the development server, and configure environment variables.
 
