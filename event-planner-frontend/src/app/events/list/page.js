@@ -101,7 +101,7 @@ export default function EventListPage() {
       />
 
       {loading ? (
-        <div className="rounded-xl border bg-white shadow-sm p-6 text-center text-gray-500">
+        <div className="rounded-xl border bg-white p-6 text-center text-gray-500 shadow-sm">
           Loading...
         </div>
       ) : events.length === 0 ? (

@@ -287,7 +287,7 @@ router.post('/reorder', async (req, res) => {
 
 /**
  * @swagger
- * /api/events/reset-priority:
+ * /api/events/resetOrder:
  *   post:
  *     summary: Remove all event priority values (set to null)
  *     tags: [Events]

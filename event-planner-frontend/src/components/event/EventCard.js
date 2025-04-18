@@ -18,7 +18,7 @@ export default function EventCard({ event, onSave, onDelete, onUpdate }) {
   const [openDelete, setOpenDelete] = useState(false);
 
   return (
-    <div className="rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300 hover:bg-gray-50">
+    <div className="rounded-xl border bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50 hover:shadow-md">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold">{event.title}</h3>
