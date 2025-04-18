@@ -12,6 +12,7 @@ import EventHeader from '@/components/event/EventHeader';
 import EventEmpty from '@/components/event/EventEmpty';
 import TaskListHeader from '@/components/timeline/TaskListHeader';
 import TaskListTable from '@/components/timeline/TaskListTable';
+import EventDialog from '@/components/event/EventDialog';
 
 import {
   Select,
@@ -33,6 +34,20 @@ export default function TimelinePage() {
   const [viewMode, setViewMode] = useState(ViewMode.Week);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useClientDateRange();
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleSave = async (updatedEvent) => {
+    try {
+      await updateEvent(updatedEvent.id, updatedEvent);
+      toast.success('Updated task date');
+      await fetchEvents();
+    } catch (err) {
+      console.error('Failed to update task date:', err);
+      toast.error('Failed to update task');
+    }
+    setDialogOpen(false);
+  };
 
   const rowHeight = 50;
 
@@ -82,7 +97,8 @@ export default function TimelinePage() {
     return events.map((event) => ({
       id: event._id,
       name: event.title,
-      type: 'task',
+      title: event.title,
+      type: event.type,
       start: new Date(event.start),
       end: new Date(event.end),
       progress: 100,
@@ -147,10 +163,28 @@ export default function TimelinePage() {
             columnWidth={getColumnWidth(viewMode)}
             onDateChange={onDateChange}
             TaskListHeader={() => <TaskListHeader rowHeight={rowHeight} />}
-            TaskListTable={({ tasks }) => <TaskListTable tasks={tasks} rowHeight={rowHeight} />}
+            TaskListTable={({ tasks }) => (
+              <TaskListTable
+                tasks={tasks}
+                rowHeight={rowHeight}
+                onClickTask={(task) => {
+                  setSelectedEvent(task);
+                  setDialogOpen(true);
+                }}
+              />
+            )}
           />
         </div>
       )}
+
+      <EventDialog
+        mode="edit"
+        event={selectedEvent}
+        onSave={handleSave}
+        trigger={null}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }

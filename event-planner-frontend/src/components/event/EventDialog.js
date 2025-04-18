@@ -10,8 +10,18 @@ import {
 import EventForm from './EventForm';
 import { useState } from 'react';
 
-export default function EventDialog({ mode = 'add', trigger, event = {}, onSave }) {
-  const [open, setOpen] = useState(false);
+export default function EventDialog({
+  mode = 'add',
+  trigger,
+  event = {},
+  onSave,
+  open: controlledOpen,
+  onOpenChange,
+}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen; 
+
   const handleSubmit = (data) => {
     onSave(data);
     setOpen(false);
@@ -19,7 +29,7 @@ export default function EventDialog({ mode = 'add', trigger, event = {}, onSave 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{mode === 'add' ? 'Add Event' : 'Edit Event'}</DialogTitle>
