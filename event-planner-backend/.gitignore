@@ -7,7 +7,7 @@ pnpm-debug.log*
 dist/
 build/
 .env
-.env.*.local
+.env.local
 
 # VSCode settings
 .vscode/

@@ -4,13 +4,13 @@ module.exports = {
         name: 'event-planner-backend',
         script: 'npm',
         args: 'run start',
-        cwd: './backend',
+        cwd: './event-planner-backend',
       },
       {
         name: 'event-planner-frontend',
         script: 'npm',
         args: 'run start',
-        cwd: './frontend',
+        cwd: './event-planner-frontend',
       },
     ],
   };
