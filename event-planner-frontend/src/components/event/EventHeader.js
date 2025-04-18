@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import EventDialog from '@/components/event/EventDialog';
 import Link from 'next/link';
 import { addEvent, getEvents } from '@/api/events';
+import { addEventType } from '@/api/eventTypes';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function EventHeader({
@@ -17,10 +18,14 @@ export default function EventHeader({
   view,
   setEvents,
   resetOrder,
+  eventTypes,
+  refreshEventTypes,
 }) {
   const handleAdd = async (eventData) => {
     try {
       await addEvent(eventData);
+      await addEventType(eventData.type);
+      await refreshEventTypes();
       toast.success('Event added successfully');
       onSave();
     } catch (err) {
@@ -91,6 +96,8 @@ export default function EventHeader({
         <EventDialog
           mode="add"
           onSave={handleAdd}
+          eventTypes={eventTypes}
+          refreshEventTypes={refreshEventTypes}
           trigger={
             <Button size="icon">
               <Plus className="h-4 w-4" />

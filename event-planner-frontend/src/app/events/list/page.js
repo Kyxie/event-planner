@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { getEvents, updateEvent, deleteEvent, reorderEvents, resetEventOrder } from '@/api/events';
+import { getAllEventTypes, addEventType, deleteEventType } from '@/api/eventTypes';
 import EventHeader from '@/components/event/EventHeader';
 import EventCard from '@/components/event/EventCard';
 import { toast } from 'sonner';
@@ -12,7 +13,13 @@ import useClientDateRange from '@/hooks/usePersistedDateRange';
 export default function EventListPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [eventTypes, setEventTypes] = useState([]);
   const [dateRange, setDateRange] = useClientDateRange();
+
+  const fetchEventTypes = async () => {
+    const types = await getAllEventTypes();
+    setEventTypes(types);
+  };
 
   const fetchEvents = useCallback(async () => {
     if (!dateRange?.startDate || !dateRange?.endDate) return;
@@ -30,12 +37,20 @@ export default function EventListPage() {
 
   useEffect(() => {
     fetchEvents();
+    fetchEventTypes();
   }, [fetchEvents]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (event) => {
     try {
-      await deleteEvent(id);
+      if (!event || !event._id) {
+        console.error('Invalid event:', event);
+        toast.error('Invalid event');
+        return;
+      }
+      await deleteEvent(event._id);
+      await deleteEventType(event.type);
       fetchEvents();
+      fetchEventTypes();
       toast.success('Event deleted successfully');
     } catch (err) {
       console.error('Failed to delete event:', err);
@@ -45,8 +60,17 @@ export default function EventListPage() {
 
   const handleUpdate = async (id, updatedData) => {
     try {
+      const existing = events.find(e => e._id === id);
+      if (!existing) return;
       await updateEvent(id, updatedData);
+
+      if (existing.type !== updatedData.type) {
+        await deleteEventType(existing.type);
+        await addEventType(updatedData.type);
+      }
+
       fetchEvents();
+      fetchEventTypes();
       toast.success('Event updated successfully');
     } catch (err) {
       console.error('Failed to update event:', err);
@@ -98,6 +122,8 @@ export default function EventListPage() {
         setEvents={setEvents}
         view="list"
         resetOrder={handleResetOrder}
+        eventTypes={eventTypes}
+        refreshEventTypes={fetchEventTypes}
       />
 
       {loading ? (
@@ -124,6 +150,8 @@ export default function EventListPage() {
                           onSave={fetchEvents}
                           onDelete={handleDelete}
                           onUpdate={handleUpdate}
+                          eventTypes={eventTypes}
+                          refreshEventTypes={fetchEventTypes}
                         />
                       </li>
                     )}

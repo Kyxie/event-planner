@@ -26,7 +26,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 
-export default function EventForm({ initialData = {}, onSubmit }) {
+export default function EventForm({ initialData = {}, onSubmit, eventTypes = []}) {
   const form = useForm({
     defaultValues: {
       title: '',
@@ -59,8 +59,6 @@ export default function EventForm({ initialData = {}, onSubmit }) {
     };
     onSubmit(finalData);
   };
-
-  const typeOptions = ['Merger', 'Dividends', 'New Capital', 'Hire', 'IPO', 'Expansion'];
   const [open, setOpen] = useState(false);
 
   return (
@@ -125,7 +123,7 @@ export default function EventForm({ initialData = {}, onSubmit }) {
                     />
                     <CommandEmpty>No type found.</CommandEmpty>
                     <CommandGroup>
-                      {typeOptions.map((item) => (
+                      {eventTypes.map((item) => (
                         <CommandItem
                           key={item}
                           value={item}

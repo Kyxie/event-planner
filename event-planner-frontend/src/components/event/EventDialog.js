@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import EventForm from './EventForm';
 import { useState } from 'react';
+import { addEventType } from '@/api/eventTypes';
 
 export default function EventDialog({
   mode = 'add',
@@ -17,12 +18,14 @@ export default function EventDialog({
   onSave,
   open: controlledOpen,
   onOpenChange,
+  eventTypes,
+  refreshEventTypes,
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const open = controlledOpen ?? uncontrolledOpen;
   const setOpen = onOpenChange ?? setUncontrolledOpen; 
 
-  const handleSubmit = (data) => {
+  const handleSubmit = async (data) => {
     onSave(data);
     setOpen(false);
   };
@@ -34,7 +37,11 @@ export default function EventDialog({
         <DialogHeader>
           <DialogTitle>{mode === 'add' ? 'Add Event' : 'Edit Event'}</DialogTitle>
         </DialogHeader>
-        <EventForm initialData={event} onSubmit={handleSubmit} />
+        <EventForm
+          initialData={event}
+          onSubmit={handleSubmit}
+          eventTypes={eventTypes}
+        />
         <DialogFooter />
       </DialogContent>
     </Dialog>

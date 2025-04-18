@@ -1,10 +1,6 @@
 import axios from './axios';
 import { toast } from 'sonner';
-
-const handleError = (error) => {
-  const message = error.response?.data?.message || error.message || 'Something went wrong';
-  throw new Error(message);
-};
+import { handleError } from './handleError';
 
 export const getEvents = async (start, end) => {
   try {
@@ -20,8 +16,8 @@ export const getEvents = async (start, end) => {
     });
 
     return res.data?.data;
-  } catch (error) {
-    handleError(error);
+  } catch (err) {
+    handleError(err);
     toast.error('Failed to send get request');
   }
 };
@@ -30,8 +26,8 @@ export const addEvent = async (event) => {
   try {
     const res = await axios.post('/events', event);
     return res.data?.data;
-  } catch (error) {
-    handleError(error);
+  } catch (err) {
+    handleError(err);
     toast.error('Failed to send add request');
   }
 };
@@ -40,8 +36,8 @@ export const updateEvent = async (id, event) => {
   try {
     const res = await axios.put(`/events/${id}`, event);
     return res.data?.data;
-  } catch (error) {
-    handleError(error);
+  } catch (err) {
+    handleError(err);
     toast.error('Failed to send put request');
   }
 };
@@ -50,8 +46,8 @@ export const deleteEvent = async (id) => {
   try {
     const res = await axios.delete(`/events/${id}`);
     return res.data?.data;
-  } catch (error) {
-    handleError(error);
+  } catch (err) {
+    handleError(err);
     toast.error('Failed to send delete request');
   }
 };
@@ -71,9 +67,9 @@ export const resetEventOrder = async () => {
   try {
     const res = await axios.post('/events/resetOrder');
     return res.data;
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     toast.error('Failed to reset order');
-    throw error;
+    throw err;
   }
 };

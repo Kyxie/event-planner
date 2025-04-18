@@ -14,7 +14,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import EventDialog from './EventDialog';
 import { format } from 'date-fns';
 
-export default function EventCard({ event, onSave, onDelete, onUpdate }) {
+export default function EventCard({ event, onSave, onDelete, onUpdate, eventTypes, refreshEventTypes }) {
   const [openDelete, setOpenDelete] = useState(false);
 
   return (
@@ -34,6 +34,8 @@ export default function EventCard({ event, onSave, onDelete, onUpdate }) {
           <EventDialog
             mode="edit"
             event={event}
+            eventTypes={eventTypes}
+            refreshEventTypes={refreshEventTypes}
             onSave={(updatedData) => onUpdate(event._id, updatedData)}
             trigger={
               <Button size="icon" variant="outline">
@@ -61,7 +63,7 @@ export default function EventCard({ event, onSave, onDelete, onUpdate }) {
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    onDelete(event._id);
+                    onDelete(event);
                     setOpenDelete(false);
                   }}
                 >

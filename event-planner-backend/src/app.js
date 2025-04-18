@@ -11,6 +11,7 @@ import cors from 'cors'
 // Controllers
 import indexRouter from './controllers/index.js'
 import eventRouter from './controllers/event.js'
+import eventTypeRouter from './controllers/eventType.js'
 
 // Loading .env
 dotenv.config()
@@ -64,6 +65,7 @@ export default function createApp(PORT) {
   // Controller
   app.use('/api', indexRouter)
   app.use('/api/events', eventRouter)
+  app.use('/api/eventTypes', eventTypeRouter)
 
   // 404
   app.use((req, res, next) => {
