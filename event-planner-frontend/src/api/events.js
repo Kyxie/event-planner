@@ -2,7 +2,7 @@ import axios from './axios';
 import { toast } from 'sonner';
 import { handleError } from './handleError';
 
-export const getEvents = async (start, end) => {
+export const getEvents = async (start, end, filters = {}) => {
   try {
     if (!(start instanceof Date) || !(end instanceof Date)) {
       throw new Error('Invalid date range');
@@ -12,7 +12,11 @@ export const getEvents = async (start, end) => {
     const endStr = end.toISOString().split('T')[0];
 
     const res = await axios.get('/events', {
-      params: { startDate: startStr, endDate: endStr },
+      params: {
+        startDate: startStr,
+        endDate: endStr,
+        ...filters,
+       },
     });
 
     return res.data?.data;

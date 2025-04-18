@@ -41,7 +41,6 @@
 import express from 'express'
 import { Response } from '../utils/Response.js'
 import Event from '../models/Event.js'
-import { startOfMonth, endOfMonth } from 'date-fns'
 
 const router = express.Router()
 
@@ -175,26 +174,33 @@ router.put('/:id', async (req, res) => {
  * @swagger
  * /api/events:
  *   get:
- *     summary: Get events within a specific date range, ordered by priority (if available)
- *     tags: [Events]
+ *     summary: Get events within a specific date range, with optional filtering by title and type.
+ *     tags:
+ *       - Events
  *     parameters:
  *       - in: query
- *         name: start
+ *         name: startDate
  *         required: true
  *         schema:
  *           type: string
  *           format: date
- *         description: Start date in YYYY-MM-DD format
+ *         description: The start of the date range (YYYY-MM-DD).
  *       - in: query
- *         name: end
+ *         name: endDate
  *         required: true
  *         schema:
  *           type: string
  *           format: date
- *         description: End date in YYYY-MM-DD format
+ *         description: The end of the date range (YYYY-MM-DD).
+ *       - in: query
+ *         name: keyword
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Optional keyword to filter events by title or type (case-insensitive, partial match).
  *     responses:
  *       200:
- *         description: List of events in the range, sorted by priority
+ *         description: List of events within the specified date range.
  *         content:
  *           application/json:
  *             schema:
@@ -202,43 +208,52 @@ router.put('/:id', async (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/Event'
  *       400:
- *         description: Missing or invalid date parameters
+ *         description: Missing or invalid required date parameters.
  *       500:
- *         description: Server error
+ *         description: Internal server error while fetching events.
  */
+
 router.get('/', async (req, res) => {
   try {
-    let { startDate, endDate } = req.query
+    let { startDate, endDate, keyword } = req.query;
 
-    // Default to current month if not provided
+    // startDate and endDate are required
     if (!startDate || !endDate) {
-      const now = new Date()
-      startDate = startOfMonth(now).toISOString().slice(0, 10)
-      endDate = endOfMonth(now).toISOString().slice(0, 10)
+      return Response.error(res, 'Missing required date parameters', 400);
     }
 
-    const startDateObj = new Date(startDate)
-    const endDateObj = new Date(endDate)
-    startDateObj.setUTCHours(0, 0, 0, 0)
-    endDateObj.setUTCHours(23, 59, 59, 999)
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    startDateObj.setUTCHours(0, 0, 0, 0);
+    endDateObj.setUTCHours(23, 59, 59, 999);
 
-    // Find and sort
-    const events = await Event.find({
+    const query = {
       start: {
         $gte: startDateObj,
         $lte: endDateObj,
       },
-    }).sort({
-      // If priority not null, goes first
-      priority: 1,
-      start: 1, // If same priority
-    })
+    };
 
-    return Response.success(res, events)
+    // search keyword are not required
+    if (keyword) {
+      const prefixRegex = { $regex: `^${keyword}`, $options: 'i' };
+      query.$or = [
+        { title: prefixRegex },
+        { type: prefixRegex },
+      ];
+    }
+
+    const events = await Event.find(query).sort({
+      priority: 1,
+      start: 1,
+    });
+
+    return Response.success(res, events);
   } catch (err) {
-    return Response.error(res, `Failed to fetch events: ${err.message || err}`, 500)
+    return Response.error(res, `Failed to fetch events: ${err.message || err}`, 500);
   }
-})
+});
+
 
 /**
  * @swagger

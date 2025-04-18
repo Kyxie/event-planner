@@ -15,6 +15,8 @@ export default function EventListPage() {
   const [loading, setLoading] = useState(true);
   const [eventTypes, setEventTypes] = useState([]);
   const [dateRange, setDateRange] = useClientDateRange();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pendingKeyword, setPendingKeyword] = useState('');
 
   const fetchEventTypes = async () => {
     const types = await getAllEventTypes();
@@ -25,15 +27,16 @@ export default function EventListPage() {
     if (!dateRange?.startDate || !dateRange?.endDate) return;
     try {
       setLoading(true);
-      const res = await getEvents(dateRange.startDate, dateRange.endDate);
+      const res = await getEvents(dateRange.startDate, dateRange.endDate, {
+        keyword: searchTerm.trim(),
+      });
       setEvents(res);
     } catch (err) {
-      console.error('Failed to fetch events:', err);
       toast.error('Failed to load events');
     } finally {
       setLoading(false);
     }
-  }, [dateRange]);
+  }, [dateRange, searchTerm]);
 
   useEffect(() => {
     fetchEvents();
@@ -122,11 +125,13 @@ export default function EventListPage() {
         dateRange={dateRange}
         setDateRange={setDateRange}
         onSave={fetchEvents}
-        setEvents={setEvents}
         view="list"
         resetOrder={handleResetOrder}
         eventTypes={eventTypes}
         refreshEventTypes={fetchEventTypes}
+        setSearchTerm={setSearchTerm}
+        pendingKeyword={pendingKeyword}
+        setPendingKeyword={setPendingKeyword}
       />
 
       {loading ? (

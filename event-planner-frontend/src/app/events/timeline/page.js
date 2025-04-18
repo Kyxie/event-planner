@@ -30,6 +30,8 @@ export default function TimelinePage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [eventTypes, setEventTypes] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pendingKeyword, setPendingKeyword] = useState('');
 
   const fetchEventTypes = async () => {
     const types = await getAllEventTypes();
@@ -54,7 +56,9 @@ export default function TimelinePage() {
     if (!dateRange?.startDate || !dateRange?.endDate) return;
     try {
       setLoading(true);
-      const res = await getEvents(dateRange.startDate, dateRange.endDate);
+      const res = await getEvents(dateRange.startDate, dateRange.endDate, {
+        keyword: searchTerm.trim(),
+      });
       setEvents(res);
     } catch (err) {
       console.error('Failed to fetch events:', err);
@@ -62,7 +66,7 @@ export default function TimelinePage() {
     } finally {
       setLoading(false);
     }
-  }, [dateRange]);
+  }, [dateRange, searchTerm]);
 
   useEffect(() => {
     fetchEvents();
@@ -154,11 +158,14 @@ export default function TimelinePage() {
         dateRange={dateRange}
         setDateRange={setDateRange}
         onSave={fetchEvents}
-        setEvents={setEvents}
         view="timeline"
         resetOrder={handleResetOrder}
         eventTypes={eventTypes}
         refreshEventTypes={fetchEventTypes}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        pendingKeyword={pendingKeyword}
+        setPendingKeyword={setPendingKeyword}
       />
 
       <div className="flex justify-end">

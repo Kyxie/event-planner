@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Plus, View, RefreshCcw } from 'lucide-react';
+import { Plus, View, RefreshCcw, X } from 'lucide-react';
 import ExpandableDatePicker from '@/components/button/ExpandableDateRangePicker';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -16,10 +16,12 @@ export default function EventHeader({
   setDateRange,
   onSave,
   view,
-  setEvents,
   resetOrder,
   eventTypes,
   refreshEventTypes,
+  setSearchTerm,
+  pendingKeyword,
+  setPendingKeyword
 }) {
   const handleAdd = async (eventData) => {
     try {
@@ -40,31 +42,42 @@ export default function EventHeader({
 
       <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
         {/* Search */}
-        <Input
-          type="text"
-          placeholder="Search..."
-          onChange={(e) => {
-            // Searching logic
-          }}
-          className="w-[220px]"
-        />
+        <div className="relative w-[220px]">
+          <Input
+            type="text"
+            placeholder="Search by title or type..."
+            value={pendingKeyword}
+            onChange={(e) => setPendingKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setSearchTerm(pendingKeyword);
+              }
+            }}
+            className="pr-8"
+          />
+          {pendingKeyword && (
+            <button
+              type="button"
+              onClick={() => {
+                setPendingKeyword('');
+                setSearchTerm('');
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
 
         <TooltipProvider>
           {/* Date Range Picker */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <ExpandableDatePicker
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                fetchEvents={(start, end) => {
-                  getEvents(start, end)
-                    .then(setEvents)
-                    .catch((err) => {
-                      console.error('Failed to fetch:', err);
-                      toast.error('Failed to load events');
-                    });
-                }}
-              />
+            <ExpandableDatePicker
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              fetchEvents={onSave}
+            />
             </TooltipTrigger>
             <TooltipContent>Pick a date range</TooltipContent>
           </Tooltip>
