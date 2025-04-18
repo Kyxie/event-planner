@@ -5,4 +5,4 @@ const EventTypeSchema = new mongoose.Schema({
   count: { type: Number, default: 0 },
 })
 
-export default mongoose.model('EventType', EventTypeSchema);
+export default mongoose.model('EventType', EventTypeSchema)

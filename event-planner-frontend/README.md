@@ -5,10 +5,16 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 First, download the dependencies:
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
-Then, run the development server:
+Then create a local `.env` file for the backend
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+```
+
+Run the development server:
 
 ```bash
 npm run dev

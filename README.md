@@ -2,9 +2,12 @@
 
 This is an elegant and intuitive event management tool built with **Next.js**, **shadcn/ui**, and **Tailwind CSS**. It offers two flexible and visually distinct views: a **List View** and a **Timeline View**, allowing you to efficiently manage and visualize your events.
 
+Preview: https://event.kyxie.me
+
 ## 🌟 Features
 
 ### 🗂️ List View
+
 - 📦 Display events as interactive cards
 - ➕ Add, ✏️ edit, and 🗑️ delete events with ease
 - 🔀 Drag-and-drop to reorder events

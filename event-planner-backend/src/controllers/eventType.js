@@ -30,18 +30,18 @@ const router = express.Router()
  */
 router.get('/', async (req, res) => {
   try {
-    const { search } = req.query;
-    let query = {};
+    const { search } = req.query
+    let query = {}
     if (search) {
-      query.type = { $regex: search, $options: 'i' };
+      query.type = { $regex: search, $options: 'i' }
     }
-    const types = await EventType.find(query).sort({ type: 1 }).select('type -_id');
-    const typeList = types.map((t) => t.type);
-    return Response.success(res, typeList);
+    const types = await EventType.find(query).sort({ type: 1 }).select('type -_id')
+    const typeList = types.map((t) => t.type)
+    return Response.success(res, typeList)
   } catch (err) {
-    return Response.error(res, `Failed to fetch event types: ${err.message || err}`, 500);
+    return Response.error(res, `Failed to fetch event types: ${err.message || err}`, 500)
   }
-});
+})
 
 /**
  * @swagger
@@ -70,22 +70,22 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { type } = req.body;
+    const { type } = req.body
     if (!type || typeof type !== 'string') {
-      return Response.error(res, 'Type is required and must be a string', 400);
+      return Response.error(res, 'Type is required and must be a string', 400)
     }
 
     const updated = await EventType.findOneAndUpdate(
       { type },
       { $inc: { count: 1 } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
+    )
 
-    return Response.success(res, updated, 200);
+    return Response.success(res, updated, 200)
   } catch (err) {
-    return Response.error(res, `Failed to update/add event type: ${err.message || err}`, 500);
+    return Response.error(res, `Failed to update/add event type: ${err.message || err}`, 500)
   }
-});
+})
 
 /**
  * @swagger
@@ -114,28 +114,27 @@ router.post('/', async (req, res) => {
  */
 router.delete('/', async (req, res) => {
   try {
-    const { type } = req.body;
+    const { type } = req.body
     if (!type || typeof type !== 'string') {
-      return Response.error(res, 'Type is required and must be a string', 400);
+      return Response.error(res, 'Type is required and must be a string', 400)
     }
 
-    const existing = await EventType.findOne({ type });
+    const existing = await EventType.findOne({ type })
     if (!existing) {
-      return Response.error(res, `Type "${type}" does not exist`, 400);
+      return Response.error(res, `Type "${type}" does not exist`, 400)
     }
 
     if (existing.count > 1) {
-      existing.count -= 1;
-      await existing.save();
-      return Response.success(res, existing, 200);
+      existing.count -= 1
+      await existing.save()
+      return Response.success(res, existing, 200)
     } else {
-      const result = await EventType.deleteOne({ _id: existing._id });
-      return Response.success(res, { message: `Type "${type}" removed`, result }, 200);
+      const result = await EventType.deleteOne({ _id: existing._id })
+      return Response.success(res, { message: `Type "${type}" removed`, result }, 200)
     }
   } catch (err) {
-    return Response.error(res, `Failed to delete event type: ${err.message || err}`, 500);
+    return Response.error(res, `Failed to delete event type: ${err.message || err}`, 500)
   }
-});
+})
 
-
-export default router;
+export default router

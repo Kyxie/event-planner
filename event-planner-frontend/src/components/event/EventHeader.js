@@ -21,7 +21,7 @@ export default function EventHeader({
   refreshEventTypes,
   setSearchTerm,
   pendingKeyword,
-  setPendingKeyword
+  setPendingKeyword,
 }) {
   const handleAdd = async (eventData) => {
     try {
@@ -62,7 +62,7 @@ export default function EventHeader({
                 setPendingKeyword('');
                 setSearchTerm('');
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
               <X className="h-4 w-4" />
             </button>
@@ -73,11 +73,11 @@ export default function EventHeader({
           {/* Date Range Picker */}
           <Tooltip>
             <TooltipTrigger asChild>
-            <ExpandableDatePicker
-              dateRange={dateRange}
-              setDateRange={setDateRange}
-              fetchEvents={onSave}
-            />
+              <ExpandableDatePicker
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                fetchEvents={onSave}
+              />
             </TooltipTrigger>
             <TooltipContent>Pick a date range</TooltipContent>
           </Tooltip>

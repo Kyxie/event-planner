@@ -215,45 +215,41 @@ router.put('/:id', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    let { startDate, endDate, keyword } = req.query;
+    let { startDate, endDate, keyword } = req.query
 
     // startDate and endDate are required
     if (!startDate || !endDate) {
-      return Response.error(res, 'Missing required date parameters', 400);
+      return Response.error(res, 'Missing required date parameters', 400)
     }
 
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
-    startDateObj.setUTCHours(0, 0, 0, 0);
-    endDateObj.setUTCHours(23, 59, 59, 999);
+    const startDateObj = new Date(startDate)
+    const endDateObj = new Date(endDate)
+    startDateObj.setUTCHours(0, 0, 0, 0)
+    endDateObj.setUTCHours(23, 59, 59, 999)
 
     const query = {
       start: {
         $gte: startDateObj,
         $lte: endDateObj,
       },
-    };
+    }
 
     // search keyword are not required
     if (keyword) {
-      const prefixRegex = { $regex: `^${keyword}`, $options: 'i' };
-      query.$or = [
-        { title: prefixRegex },
-        { type: prefixRegex },
-      ];
+      const prefixRegex = { $regex: `^${keyword}`, $options: 'i' }
+      query.$or = [{ title: prefixRegex }, { type: prefixRegex }]
     }
 
     const events = await Event.find(query).sort({
       priority: 1,
       start: 1,
-    });
+    })
 
-    return Response.success(res, events);
+    return Response.success(res, events)
   } catch (err) {
-    return Response.error(res, `Failed to fetch events: ${err.message || err}`, 500);
+    return Response.error(res, `Failed to fetch events: ${err.message || err}`, 500)
   }
-});
-
+})
 
 /**
  * @swagger

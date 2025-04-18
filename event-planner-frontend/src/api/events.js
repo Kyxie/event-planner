@@ -16,7 +16,7 @@ export const getEvents = async (start, end, filters = {}) => {
         startDate: startStr,
         endDate: endStr,
         ...filters,
-       },
+      },
     });
 
     return res.data?.data;
