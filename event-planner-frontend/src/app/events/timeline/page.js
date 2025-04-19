@@ -69,12 +69,14 @@ export default function TimelinePage() {
   }, [dateRange, searchTerm]);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
-
-  useEffect(() => {
     fetchEventTypes();
   }, []);
+  
+  useEffect(() => {
+    if (eventTypes.length > 0) {
+      fetchEvents();
+    }
+  }, [eventTypes]);
 
   const onDateChange = async (task) => {
     try {
@@ -115,7 +117,6 @@ export default function TimelinePage() {
       '#ff4136', // Red
     ];
     eventTypes.forEach((type, index) => {
-      console.log(type);
       map[type] = colorPalette[index % colorPalette.length];
     });
     return map;
@@ -135,7 +136,7 @@ export default function TimelinePage() {
         progressSelectedColor: '#000',
       },
     }));
-  }, [events]);
+  }, [events, typeColorMap]);
 
   const getColumnWidth = (mode) => {
     switch (mode) {
