@@ -307,32 +307,28 @@ router.get('/', async (req, res) => {
  */
 router.post('/reorder', async (req, res) => {
   const { draggedId, beforeId, afterId } = req.body
-  try {
-    // The event need to be reset priority
-    const events = await Event.find({ _id: { $in: [draggedId, beforeId, afterId] } })
 
-    const map = Object.fromEntries(events.map((e) => [e._id.toString(), e]))
-    // The before event
+  try {
+    const events = await Event.find({ _id: { $in: [draggedId, beforeId, afterId] } })
+    const map = Object.fromEntries(events.map(e => [e._id.toString(), e]))
+
     const beforeEvent = map[beforeId] || null
-    // The after event
     const afterEvent = map[afterId] || null
 
     let newPriority
 
     if (beforeEvent?.priority != null && afterEvent?.priority != null) {
-      // If both before and after are not null
       newPriority = (beforeEvent.priority + afterEvent.priority) / 2
     } else if (!beforeEvent && afterEvent?.priority != null) {
-      // If before is null
       newPriority = afterEvent.priority - 1000
     } else if (beforeEvent?.priority != null && !afterEvent) {
-      // If after is null
       newPriority = beforeEvent.priority + 1000
     } else {
-      // If both are null, we need to normalize first, then do it again
       await normalizeAllEvents()
+
       const normalizedEvents = await Event.find({ _id: { $in: [draggedId, beforeId, afterId] } })
-      const updatedMap = Object.fromEntries(normalizedEvents.map((e) => [e._id.toString(), e]))
+      const updatedMap = Object.fromEntries(normalizedEvents.map(e => [e._id.toString(), e]))
+
       const updatedBefore = updatedMap[beforeId] || null
       const updatedAfter = updatedMap[afterId] || null
 
@@ -345,15 +341,19 @@ router.post('/reorder', async (req, res) => {
       }
     }
 
+    if (newPriority == null) {
+      return Response.badRequest(res, 'Cannot calculate new priority')
+    }
+
     await Event.updateOne({ _id: draggedId }, { $set: { priority: newPriority } })
 
-    if (Math.abs((beforeEvent?.priority ?? 0) - (afterEvent?.priority ?? 0)) < 1) {
+    if (beforeEvent && afterEvent && Math.abs(beforeEvent.priority - afterEvent.priority) < 1) {
       await normalizeAllEvents()
     }
 
-    return res.json({ message: 'Reordered successfully' })
+    return Response.success(res, { message: 'Reordered successfully' })
   } catch (err) {
-    return res.status(500).json({ error: `Reorder failed: ${err.message}` })
+    return Response.error(res, `Failed to reorder: ${err.message || err}`, 500)
   }
 })
 
@@ -364,11 +364,14 @@ async function normalizeAllEvents() {
   const bulkOps = events.map((e, i) => ({
     updateOne: {
       filter: { _id: e._id },
-      update: { $set: { priority: i * 100 } },
+      update: { $set: { priority: i * 1000 } },
     },
   }))
 
-  await Event.bulkWrite(bulkOps)
+  if (bulkOps.length > 0) {
+    const result = await Event.bulkWrite(bulkOps)
+    console.log(`Normalized ${result.modifiedCount} events`)
+  }
 }
 
 /**
@@ -400,4 +403,4 @@ router.post('/resetOrder', async (req, res) => {
   }
 })
 
-export default router
+export default router;
