@@ -178,6 +178,11 @@ export default function EventForm({ initialData = {}, onSubmit, eventTypes = [] 
                         field.onChange(adjusted);
                       }
                     }}
+                    disabled={(date) => {
+                      if (!form.getValues('end')) return false;
+                      return date > new Date(form.getValues('end'));
+                    }}
+                    defaultMonth={field.value ? new Date(field.value) : undefined}
                     initialFocus
                   />
                 </PopoverContent>
@@ -225,6 +230,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventTypes = [] 
                       if (!watchedStartDate) return false;
                       return date < new Date(watchedStartDate);
                     }}
+                    defaultMonth={field.value ? new Date(field.value) : undefined}
                     initialFocus
                   />
                 </PopoverContent>

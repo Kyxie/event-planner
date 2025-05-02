@@ -71,7 +71,7 @@ export default function TimelinePage() {
   useEffect(() => {
     fetchEventTypes();
   }, []);
-  
+
   useEffect(() => {
     if (eventTypes.length > 0) {
       fetchEvents();

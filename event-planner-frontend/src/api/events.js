@@ -27,6 +27,11 @@ export const getEvents = async (start, end, filters = {}) => {
 };
 
 export const addEvent = async (event) => {
+  const { start, end } = event;
+  if (new Date(start) >= new Date(end)) {
+    toast.error('End date must be after start date');
+    return;
+  }
   try {
     const res = await axios.post('/events', event);
     return res.data?.data;
@@ -62,7 +67,7 @@ export const reorderEvents = async (draggedId, beforeId, afterId) => {
     const requestBody = {
       draggedId,
       beforeId,
-      afterId
+      afterId,
     };
 
     const res = await axios.post('/events/reorder', requestBody);
