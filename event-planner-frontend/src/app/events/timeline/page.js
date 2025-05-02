@@ -69,6 +69,12 @@ export default function TimelinePage() {
   }, [dateRange, searchTerm]);
 
   useEffect(() => {
+    if (dateRange?.startDate && dateRange?.endDate) {
+      fetchEvents();
+    }
+  }, [dateRange, searchTerm]);
+
+  useEffect(() => {
     fetchEventTypes();
   }, []);
 
