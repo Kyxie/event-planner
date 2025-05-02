@@ -10,5 +10,6 @@ const eventSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+eventSchema.index({ priority: 1, start: 1 })
 
 export default mongoose.model('Event', eventSchema)

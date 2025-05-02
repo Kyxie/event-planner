@@ -240,9 +240,21 @@ router.get('/', async (req, res) => {
       query.$or = [{ title: prefixRegex }, { type: prefixRegex }]
     }
 
-    const events = await Event.find(query).sort({
-      priority: 1,
-      start: 1,
+    let events = await Event.find(query)
+    // Replace null priority with a very large value
+    events = events.map(event => {
+      if (event.priority === null) {
+        event.priority = Infinity
+      }
+      return event
+    })
+
+    // Sort the events by priority and start date
+    events = events.sort((a, b) => {
+      if (a.priority === b.priority) {
+        return a.start - b.start
+      }
+      return a.priority - b.priority
     })
 
     return Response.success(res, events)
@@ -262,10 +274,17 @@ router.get('/', async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: array
- *             items:
- *               type: string
- *               description: Event ID in desired order
+ *             type: object
+ *             properties:
+ *               draggedId:
+ *                 type: string
+ *                 description: ID of the dragged event
+ *               beforeId:
+ *                 type: string
+ *                 description: ID of the event before the dragged event
+ *               afterId:
+ *                 type: string
+ *                 description: ID of the event after the dragged event
  *     responses:
  *       200:
  *         description: Priorities updated
@@ -275,26 +294,70 @@ router.get('/', async (req, res) => {
  *         description: Server error
  */
 router.post('/reorder', async (req, res) => {
+  const { draggedId, beforeId, afterId } = req.body;
   try {
-    const orderedIds = req.body
+    // The event need to be reset priority
+    const events = await Event.find({ _id: { $in: [draggedId, beforeId, afterId] } });
 
-    if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
-      return Response.error(res, 'Invalid format. Expecting array of event IDs.', 400)
+    const map = Object.fromEntries(events.map(e => [e._id.toString(), e]));
+    // The before event
+    const beforeEvent = map[beforeId] || null;
+    // The after event
+    const afterEvent = map[afterId] || null;
+
+    let newPriority;
+
+    if (beforeEvent?.priority != null && afterEvent?.priority != null) {
+      // If both before and after are not null
+      newPriority = (beforeEvent.priority + afterEvent.priority) / 2;
+    } else if (!beforeEvent && afterEvent?.priority != null) {
+      // If before is null
+      newPriority = afterEvent.priority - 1000;
+    } else if (beforeEvent?.priority != null && !afterEvent) {
+      // If after is null
+      newPriority = beforeEvent.priority + 1000;
+    } else {
+      // If both are null, we need to normalize first, then do it again
+      await normalizeAllEvents();
+      const normalizedEvents = await Event.find({ _id: { $in: [draggedId, beforeId, afterId] } });
+      const updatedMap = Object.fromEntries(normalizedEvents.map(e => [e._id.toString(), e]));
+      const updatedBefore = updatedMap[beforeId] || null;
+      const updatedAfter = updatedMap[afterId] || null;
+
+      if (updatedBefore?.priority != null && updatedAfter?.priority != null) {
+        newPriority = (updatedBefore.priority + updatedAfter.priority) / 2;
+      } else if (!updatedBefore && updatedAfter?.priority != null) {
+        newPriority = updatedAfter.priority - 1000;
+      } else if (updatedBefore?.priority != null && !updatedAfter) {
+        newPriority = updatedBefore.priority + 1000;
+      }
     }
 
-    const bulkOps = orderedIds.map((id, index) => ({
-      updateOne: {
-        filter: { _id: id },
-        update: { $set: { priority: index * 100 } },
-      },
-    }))
+    await Event.updateOne({ _id: draggedId }, { $set: { priority: newPriority } });
 
-    await Event.bulkWrite(bulkOps)
-    return Response.success(res, { message: 'Priorities updated successfully' })
+    if (Math.abs((beforeEvent?.priority ?? 0) - (afterEvent?.priority ?? 0)) < 1) {
+      await normalizeAllEvents();
+    }
+
+    return res.json({ message: 'Reordered successfully' });
   } catch (err) {
-    return Response.error(res, `Failed to reorder events: ${err.message || err}`, 500)
+    return res.status(500).json({ error: `Reorder failed: ${err.message}` });
   }
-})
+});
+
+// Normalize
+async function normalizeAllEvents() {
+  const events = await Event.find().sort({ priority: 1, start: 1 });
+
+  const bulkOps = events.map((e, i) => ({
+    updateOne: {
+      filter: { _id: e._id },
+      update: { $set: { priority: i * 100 } },
+    },
+  }));
+
+  await Event.bulkWrite(bulkOps);
+}
 
 /**
  * @swagger

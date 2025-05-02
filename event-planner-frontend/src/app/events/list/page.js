@@ -86,20 +86,21 @@ export default function EventListPage() {
 
   const handleDragEnd = async (result) => {
     const { destination, source } = result;
-
+  
     if (!destination || destination.index === source.index) return;
-
+  
     const reordered = [...events];
     const [moved] = reordered.splice(source.index, 1);
     reordered.splice(destination.index, 0, moved);
-
+  
     setEvents(reordered);
-
-    const orderedIds = reordered.map((e) => e._id);
-
+  
+    const draggedId = moved._id;
+    const beforeId = reordered[destination.index - 1]?._id || null;
+    const afterId = reordered[destination.index + 1]?._id || null;
+  
     try {
-      await reorderEvents(orderedIds);
-      toast.success('Event order saved');
+      await reorderEvents(draggedId, beforeId, afterId);
       fetchEvents();
     } catch (err) {
       console.error('Failed to reorder:', err);

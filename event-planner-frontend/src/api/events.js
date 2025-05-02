@@ -56,9 +56,17 @@ export const deleteEvent = async (id) => {
   }
 };
 
-export const reorderEvents = async (orderedIds) => {
+export const reorderEvents = async (draggedId, beforeId, afterId) => {
   try {
-    const res = await axios.post('/events/reorder', orderedIds);
+    // Request structure
+    const requestBody = {
+      draggedId,
+      beforeId,
+      afterId
+    };
+
+    const res = await axios.post('/events/reorder', requestBody);
+    toast.success('Events order saved');
     return res.data;
   } catch (err) {
     handleError(err);
